@@ -1,0 +1,250 @@
+<!doctype html>
+
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scoreboard - Painel de Pontuação</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#10b981;--muted:#9aa4b2;--danger:#ef4444}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    body{margin:0;background:linear-gradient(180deg,#071024 0%,#081226 100%);color:#e6eef6;padding:24px}
+    .wrap{max-width:960px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.6)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;text-align:left}
+    th{color:var(--muted);font-size:13px}
+    td{font-weight:600}
+    .score{font-size:18px}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{background:transparent;border:1px solid rgba(255,255,255,.06);color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.primary{background:var(--accent);border:0;color:#062018}
+    button.danger{background:var(--danger);border:0}
+    form.inline{display:flex;gap:8px;align-items:center}
+    input,select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:transparent;color:inherit}
+    .muted{color:var(--muted);font-size:13px}
+    .hidden{display:none}
+    .right{display:flex;gap:8px;align-items:center}
+    footer{margin-top:14px;color:var(--muted);font-size:13px}
+    .badge{background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;font-size:13px}
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.6)}
+    .modal .box{width:100%;max-width:420px}
+    .hint{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Scoreboard — Painel de Pontuação</h1>
+      <div class="right">
+        <div class="badge" id="statusBadge">Modo de edição: <span id="editState">Bloqueado</span></div>
+        <div style="width:8px"></div>
+        <button id="btnToggleEdit">Entrar com senha</button>
+      </div>
+    </header><section class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div>
+      <div class="muted">Campeonato</div>
+      <div style="font-weight:800">Seu Campeonato</div>
+    </div>
+    <div class="muted">Dados salvos localmente no navegador (localStorage)</div>
+  </div>
+
+  <table id="scoreTable" class="scoreboard">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Time</th>
+        <th>Pontos</th>
+        <th class="hidden editCol">Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyTeams"></tbody>
+  </table>
+
+  <div style="height:12px"></div>
+
+  <div id="editor" class="hidden">
+    <form id="addForm" class="inline">
+      <input id="teamName" placeholder="Nome do time" required />
+      <input id="teamScore" type="number" value="0" required style="width:100px" />
+      <button class="primary" type="submit">Adicionar / Atualizar</button>
+      <button type="button" id="btnClear">Limpar tudo</button>
+    </form>
+
+    <div style="height:12px"></div>
+    <div class="muted">Importar / Exportar JSON</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="btnExport">Exportar JSON</button>
+      <input id="importArea" placeholder='Cole JSON aqui' style="flex:1" />
+      <button id="btnImport">Importar</button>
+    </div>
+  </div>
+
+  <div style="height:10px"></div>
+  <div class="muted">Atalhos: clique em um ponto para editar no modo edição.</div>
+</section>
+
+<footer>
+  Desenvolvido — Versão simples. Segurança: a senha está verificada no cliente; se precisar de proteção real, hospede com backend.
+</footer>
+
+  </div>  <!-- Modal senha -->  <div id="modalPwd" class="modal hidden">
+    <div class="box card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="muted">Autenticação</div>
+          <div style="font-weight:800">Digite a senha de edição</div>
+        </div>
+        <button id="btnCloseModal">X</button>
+      </div>
+      <div style="height:12px"></div>
+      <div>
+        <input id="inputPwd" type="password" placeholder="Senha" style="width:100%" />
+        <div style="height:8px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="btnCancel">Cancelar</button>
+          <button id="btnSubmitPwd" class="primary">Entrar</button>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="hint">Aviso: proteção client-side. Para segurança real, use servidor.</div>
+    </div>
+  </div><script>
+// Configuração: senha de edição (fornecida pelo dono do site)
+const EDIT_PASSWORD = '5887'; // ATENÇÃO: client-side; visível no código
+
+// Estado
+let editMode = false;
+let teams = [];
+let editingIndex = -1;
+
+// Elementos
+const tbody = document.getElementById('tbodyTeams');
+const editor = document.getElementById('editor');
+const btnToggleEdit = document.getElementById('btnToggleEdit');
+const statusBadge = document.getElementById('editState');
+const modalPwd = document.getElementById('modalPwd');
+const inputPwd = document.getElementById('inputPwd');
+const btnSubmitPwd = document.getElementById('btnSubmitPwd');
+const btnCloseModal = document.getElementById('btnCloseModal');
+const btnCancel = document.getElementById('btnCancel');
+const addForm = document.getElementById('addForm');
+const teamName = document.getElementById('teamName');
+const teamScore = document.getElementById('teamScore');
+const btnClear = document.getElementById('btnClear');
+const btnExport = document.getElementById('btnExport');
+const btnImport = document.getElementById('btnImport');
+const importArea = document.getElementById('importArea');
+
+// Inicialização
+load();
+render();
+updateUI();
+
+// Event listeners
+btnToggleEdit.addEventListener('click', ()=>{ openModal(); });
+btnCloseModal.addEventListener('click', ()=>{ closeModal(); });
+btnCancel.addEventListener('click', ()=>{ closeModal(); });
+btnSubmitPwd.addEventListener('click', ()=>{ attemptLogin(); });
+
+addForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = teamName.value.trim();
+  const score = Number(teamScore.value) || 0;
+  if(!name) return;
+  if(editingIndex >= 0){
+    teams[editingIndex] = { name, score };
+    editingIndex = -1;
+  } else {
+    teams.push({ name, score });
+  }
+  save(); render();
+  teamName.value=''; teamScore.value='0';
+});
+
+btnClear.addEventListener('click', ()=>{
+  if(!editMode) { alert('Modo edição necessário'); return; }
+  if(!confirm('Apagar todos os times?')) return;
+  teams = []; save(); render();
+});
+
+btnExport.addEventListener('click', ()=>{
+  const data = JSON.stringify({ teams }, null, 2);
+  navigator.clipboard?.writeText(data);
+  alert('JSON copiado para a área de transferência.');
+});
+
+btnImport.addEventListener('click', ()=>{
+  if(!editMode) { alert('Modo edição necessário'); return; }
+  try{
+    const obj = JSON.parse(importArea.value);
+    if(!Array.isArray(obj.teams)) throw new Error('Formato inválido');
+    teams = obj.teams.map(t=>({ name: String(t.name||''), score: Number(t.score||0) }));
+    save(); render(); alert('Importado com sucesso');
+  }catch(err){ alert('Erro ao importar: '+err.message); }
+});
+
+// Render
+function render(){
+  tbody.innerHTML = '';
+  teams.sort((a,b)=>b.score - a.score);
+  teams.forEach((t,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `\n      <td>${i+1}</td>\n      <td>${escapeHtml(t.name)}</td>\n      <td class="score">${t.score}</td>\n      <td class="editCol">${editMode?`<button data-i="${i}" class="btnEdit">Editar</button> <button data-i="${i}" class="btnDel">Excluir</button>`:''}</td>`;
+    tbody.appendChild(tr);
+  });
+  // attach edit handlers
+  document.querySelectorAll('.btnEdit').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = Number(btn.getAttribute('data-i'));
+      editingIndex = i;
+      teamName.value = teams[i].name;
+      teamScore.value = teams[i].score;
+      window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+    });
+  });
+  document.querySelectorAll('.btnDel').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = Number(btn.getAttribute('data-i'));
+      if(confirm('Excluir time "'+teams[i].name+'"?')){ teams.splice(i,1); save(); render(); }
+    });
+  });
+}
+
+// Storage
+function save(){ localStorage.setItem('scoreboard_v1', JSON.stringify(teams)); }
+function load(){ try{ const raw = localStorage.getItem('scoreboard_v1'); if(raw) teams = JSON.parse(raw); }catch(e){ teams = []; } }
+
+// Modal / Auth
+function openModal(){ modalPwd.classList.remove('hidden'); inputPwd.value=''; inputPwd.focus(); }
+function closeModal(){ modalPwd.classList.add('hidden'); }
+function attemptLogin(){ const val = inputPwd.value.trim(); if(val === EDIT_PASSWORD){ editMode = !editMode; updateUI(); closeModal(); alert(editMode ? 'Modo edição habilitado' : 'Modo edição desabilitado'); } else { alert('Senha incorreta'); } }
+
+// UI update
+function updateUI(){ document.querySelectorAll('.editCol').forEach(el=>el.style.display = editMode ? '' : 'none');
+  editor.classList.toggle('hidden', !editMode);
+  statusBadge.textContent = editMode ? 'Liberado' : 'Bloqueado';
+  btnToggleEdit.textContent = editMode ? 'Sair do modo edição' : 'Entrar com senha';
+}
+
+// Helpers
+function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+// Easy double-click to increment score in viewing mode (convenience)
+tbody.addEventListener('click', e=>{
+  const td = e.target.closest('td');
+  if(!td) return;
+  const row = td.parentElement; const idx = Array.from(tbody.children).indexOf(row);
+  if(idx<0) return;
+  if(!editMode && td.classList.contains('score')){
+    // quick add 1 point for viewers (not saved if page reloads? it does save)
+    teams[idx].score = Number(teams[idx].score) + 1;
+    save(); render();
+  }
+});
+
+</script></body>
+  </html>
