@@ -29,8 +29,9 @@
     .right{display:flex;gap:8px;align-items:center}
     footer{margin-top:14px;color:var(--muted);font-size:13px}
     .badge{background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;font-size:13px}
-    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.6)}
-    .modal .box{width:100%;max-width:420px}
+    .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;display:flex;flex-direction:column;gap:8px}
+    .corner-btn{width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .corner-panel{width:360px;max-width:calc(100% - 40px)}
     .hint{font-size:12px;color:var(--muted)}
   </style>
 </head>
@@ -40,8 +41,6 @@
       <h1>Scoreboard — Painel de Pontuação</h1>
       <div class="right">
         <div class="badge" id="statusBadge">Modo de edição: <span id="editState">Bloqueado</span></div>
-        <div style="width:8px"></div>
-        <button id="btnToggleEdit">Entrar com senha</button>
       </div>
     </header><section class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -58,20 +57,46 @@
         <th>#</th>
         <th>Time</th>
         <th>Pontos</th>
-        <th class="hidden editCol">Ações</th>
+        <th class="editCol">Ações</th>
       </tr>
     </thead>
     <tbody id="tbodyTeams"></tbody>
   </table>
 
   <div style="height:12px"></div>
+  <div class="muted">Atalhos: clique no ponto para editar rápido no modo edição. Visitantes só veem a tabela e o botão discreto no canto.</div>
+</section>
 
-  <div id="editor" class="hidden">
+<footer>
+  Desenvolvido — Versão com editor discreto no canto. Segurança: a senha está verificada no cliente; para proteção real, use backend.
+</footer>
+
+  </div>  <!-- Editor discreto no canto -->  <div class="editor-corner" id="editorCorner">
+    <div class="corner-btn" id="btnLock" title="Abrir editor (requer senha)">🔒</div><div id="cornerPanel" class="card corner-panel hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="muted">Área de Edição</div>
+      <div style="font-weight:800">Editor Seguro</div>
+    </div>
+    <div id="cornerControls"></div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div id="loginBox">
+    <input id="inputPwd" type="password" placeholder="Senha" style="width:100%" />
+    <div style="height:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="btnPwdCancel">Fechar</button>
+      <button id="btnSubmitPwd" class="primary">Entrar</button>
+    </div>
+  </div>
+
+  <div id="editorBox" class="hidden">
     <form id="addForm" class="inline">
       <input id="teamName" placeholder="Nome do time" required />
       <input id="teamScore" type="number" value="0" required style="width:100px" />
       <button class="primary" type="submit">Adicionar / Atualizar</button>
-      <button type="button" id="btnClear">Limpar tudo</button>
     </form>
 
     <div style="height:12px"></div>
@@ -81,40 +106,25 @@
       <input id="importArea" placeholder='Cole JSON aqui' style="flex:1" />
       <button id="btnImport">Importar</button>
     </div>
+
+    <div style="height:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button id="btnClear" class="danger">Apagar tudo</button>
+      <button id="btnLogout">Sair do editor</button>
+    </div>
   </div>
 
-  <div style="height:10px"></div>
-  <div class="muted">Atalhos: clique em um ponto para editar no modo edição.</div>
-</section>
+  <div style="height:8px"></div>
+  <div class="hint">Editor persistente: ao entrar com a senha, o modo de edição fica **ativado e salvo** no navegador. Ninguém verá o painel salvo se não souber a senha.</div>
+</div>
 
-<footer>
-  Desenvolvido — Versão simples. Segurança: a senha está verificada no cliente; se precisar de proteção real, hospede com backend.
-</footer>
-
-  </div>  <!-- Modal senha -->  <div id="modalPwd" class="modal hidden">
-    <div class="box card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div class="muted">Autenticação</div>
-          <div style="font-weight:800">Digite a senha de edição</div>
-        </div>
-        <button id="btnCloseModal">X</button>
-      </div>
-      <div style="height:12px"></div>
-      <div>
-        <input id="inputPwd" type="password" placeholder="Senha" style="width:100%" />
-        <div style="height:8px"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button id="btnCancel">Cancelar</button>
-          <button id="btnSubmitPwd" class="primary">Entrar</button>
-        </div>
-      </div>
-      <div style="height:8px"></div>
-      <div class="hint">Aviso: proteção client-side. Para segurança real, use servidor.</div>
-    </div>
   </div><script>
 // Configuração: senha de edição (fornecida pelo dono do site)
-const EDIT_PASSWORD = '5887'; // ATENÇÃO: client-side; visível no código
+const EDIT_PASSWORD = '5887'; // NOTE: client-side; visível no código
+
+// Keys
+const STORAGE_TEAMS = 'scoreboard_v1';
+const STORAGE_AUTH = 'scoreboard_edit_auth_v1';
 
 // Estado
 let editMode = false;
@@ -123,14 +133,14 @@ let editingIndex = -1;
 
 // Elementos
 const tbody = document.getElementById('tbodyTeams');
-const editor = document.getElementById('editor');
-const btnToggleEdit = document.getElementById('btnToggleEdit');
 const statusBadge = document.getElementById('editState');
-const modalPwd = document.getElementById('modalPwd');
+const btnLock = document.getElementById('btnLock');
+const cornerPanel = document.getElementById('cornerPanel');
+const loginBox = document.getElementById('loginBox');
+const editorBox = document.getElementById('editorBox');
 const inputPwd = document.getElementById('inputPwd');
 const btnSubmitPwd = document.getElementById('btnSubmitPwd');
-const btnCloseModal = document.getElementById('btnCloseModal');
-const btnCancel = document.getElementById('btnCancel');
+const btnPwdCancel = document.getElementById('btnPwdCancel');
 const addForm = document.getElementById('addForm');
 const teamName = document.getElementById('teamName');
 const teamScore = document.getElementById('teamScore');
@@ -138,20 +148,24 @@ const btnClear = document.getElementById('btnClear');
 const btnExport = document.getElementById('btnExport');
 const btnImport = document.getElementById('btnImport');
 const importArea = document.getElementById('importArea');
+const btnLogout = document.getElementById('btnLogout');
+const cornerControls = document.getElementById('cornerControls');
 
 // Inicialização
 load();
 render();
+initAuthFromStorage();
 updateUI();
 
 // Event listeners
-btnToggleEdit.addEventListener('click', ()=>{ openModal(); });
-btnCloseModal.addEventListener('click', ()=>{ closeModal(); });
-btnCancel.addEventListener('click', ()=>{ closeModal(); });
-btnSubmitPwd.addEventListener('click', ()=>{ attemptLogin(); });
+btnLock.addEventListener('click', ()=>{ cornerPanel.classList.toggle('hidden'); inputPwd.value=''; inputPwd.focus(); });
+btnPwdCancel.addEventListener('click', ()=>{ cornerPanel.classList.add('hidden'); });
+btnSubmitPwd.addEventListener('click', attemptLogin);
+btnLogout.addEventListener('click', ()=>{ setAuth(false); alert('Saindo do modo edição'); updateUI(); });
 
 addForm.addEventListener('submit', (e)=>{
   e.preventDefault();
+  if(!editMode){ alert('Entre com a senha para editar'); return; }
   const name = teamName.value.trim();
   const score = Number(teamScore.value) || 0;
   if(!name) return;
@@ -193,7 +207,11 @@ function render(){
   teams.sort((a,b)=>b.score - a.score);
   teams.forEach((t,i)=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `\n      <td>${i+1}</td>\n      <td>${escapeHtml(t.name)}</td>\n      <td class="score">${t.score}</td>\n      <td class="editCol">${editMode?`<button data-i="${i}" class="btnEdit">Editar</button> <button data-i="${i}" class="btnDel">Excluir</button>`:''}</td>`;
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${escapeHtml(t.name)}</td>
+      <td class="score">${t.score}</td>
+      <td class="editCol">${editMode?`<button data-i="${i}" class="btnEdit">Editar</button> <button data-i="${i}" class="btnDel">Excluir</button>`:''}</td>`;
     tbody.appendChild(tr);
   });
   // attach edit handlers
@@ -203,7 +221,7 @@ function render(){
       editingIndex = i;
       teamName.value = teams[i].name;
       teamScore.value = teams[i].score;
-      window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+      cornerPanel.scrollIntoView({behavior:'smooth'});
     });
   });
   document.querySelectorAll('.btnDel').forEach(btn=>{
@@ -215,36 +233,39 @@ function render(){
 }
 
 // Storage
-function save(){ localStorage.setItem('scoreboard_v1', JSON.stringify(teams)); }
-function load(){ try{ const raw = localStorage.getItem('scoreboard_v1'); if(raw) teams = JSON.parse(raw); }catch(e){ teams = []; } }
+function save(){ localStorage.setItem(STORAGE_TEAMS, JSON.stringify(teams)); }
+function load(){ try{ const raw = localStorage.getItem(STORAGE_TEAMS); if(raw) teams = JSON.parse(raw); }catch(e){ teams = []; } }
 
-// Modal / Auth
-function openModal(){ modalPwd.classList.remove('hidden'); inputPwd.value=''; inputPwd.focus(); }
-function closeModal(){ modalPwd.classList.add('hidden'); }
-function attemptLogin(){ const val = inputPwd.value.trim(); if(val === EDIT_PASSWORD){ editMode = !editMode; updateUI(); closeModal(); alert(editMode ? 'Modo edição habilitado' : 'Modo edição desabilitado'); } else { alert('Senha incorreta'); } }
+function setAuth(val){ editMode = !!val; localStorage.setItem(STORAGE_AUTH, editMode ? '1' : '0'); updateUI(); }
+function initAuthFromStorage(){ try{ const v = localStorage.getItem(STORAGE_AUTH); if(v==='1') editMode = true; else editMode = false; }catch(e){ editMode = false; } }
+
+// Auth
+function attemptLogin(){ const val = inputPwd.value.trim(); if(val === EDIT_PASSWORD){ setAuth(true); cornerPanel.classList.remove('hidden'); alert('Modo edição habilitado'); } else { alert('Senha incorreta'); } }
 
 // UI update
 function updateUI(){ document.querySelectorAll('.editCol').forEach(el=>el.style.display = editMode ? '' : 'none');
-  editor.classList.toggle('hidden', !editMode);
+  editorBox.classList.toggle('hidden', !editMode);
+  loginBox.classList.toggle('hidden', editMode);
   statusBadge.textContent = editMode ? 'Liberado' : 'Bloqueado';
-  btnToggleEdit.textContent = editMode ? 'Sair do modo edição' : 'Entrar com senha';
+  btnLock.textContent = editMode ? '🔓' : '🔒';
+  // corner controls
+  cornerControls.innerHTML = editMode ? '<span class="muted">Edit</span>' : '';
 }
 
 // Helpers
-function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>\\"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
 
-// Easy double-click to increment score in viewing mode (convenience)
+// Convenience: click on score cell increments by 1 only in edit mode (persisted)
 tbody.addEventListener('click', e=>{
   const td = e.target.closest('td');
   if(!td) return;
   const row = td.parentElement; const idx = Array.from(tbody.children).indexOf(row);
   if(idx<0) return;
-  if(!editMode && td.classList.contains('score')){
-    // quick add 1 point for viewers (not saved if page reloads? it does save)
+  if(editMode && td.classList.contains('score')){
     teams[idx].score = Number(teams[idx].score) + 1;
     save(); render();
   }
 });
 
 </script></body>
-  </html>
+          </html>
