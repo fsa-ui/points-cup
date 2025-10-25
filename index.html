@@ -4,268 +4,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Scoreboard - Painel de Pontuação</title>
+  <title>FSA CUP - Painel Oficial de Pontuação</title>
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#10b981;--muted:#9aa4b2;--danger:#ef4444}
-    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    body{margin:0;background:linear-gradient(180deg,#071024 0%,#081226 100%);color:#e6eef6;padding:24px}
-    .wrap{max-width:960px;margin:0 auto}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-size:20px;margin:0}
-    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,.6)}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;text-align:left}
-    th{color:var(--muted);font-size:13px}
-    td{font-weight:600}
-    .score{font-size:18px}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{background:transparent;border:1px solid rgba(255,255,255,.06);color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
-    button.primary{background:var(--accent);border:0;color:#062018}
-    button.danger{background:var(--danger);border:0}
-    form.inline{display:flex;gap:8px;align-items:center}
-    input,select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:transparent;color:inherit}
-    .muted{color:var(--muted);font-size:13px}
-    .hidden{display:none}
-    .right{display:flex;gap:8px;align-items:center}
-    footer{margin-top:14px;color:var(--muted);font-size:13px}
-    .badge{background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;font-size:13px}
-    .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;display:flex;flex-direction:column;gap:8px}
-    .corner-btn{width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;cursor:pointer}
-    .corner-panel{width:360px;max-width:calc(100% - 40px)}
-    .hint{font-size:12px;color:var(--muted)}
+    :root{
+      --bg:#0a0e1a;
+      --card:#0f172a;
+      --accent:#eab308;
+      --muted:#9aa4b2;
+      --danger:#ef4444;
+      --border:rgba(255,255,255,0.08);
+    }
+    *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff}
+    body{margin:0;background:radial-gradient(circle at top,#11192c,#070b14 60%);padding:0;min-height:100vh;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
+    header h1{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:2px;}
+    .container{max-width:1200px;margin:30px auto;padding:0 20px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.5);padding:20px;margin-bottom:24px;}
+    h2{margin:0 0 16px;font-size:20px;color:var(--accent);text-transform:uppercase;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;text-align:left;}
+    th{color:var(--muted);font-size:13px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+    td{font-weight:600;}
+    tr:nth-child(even){background:rgba(255,255,255,0.02);}
+    .score{font-size:18px;}
+    .editCol button{margin-right:6px;}
+    button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
+    button.primary{background:var(--accent);color:#000;border:0;font-weight:600;}
+    button.primary:hover{filter:brightness(1.1);}
+    button.danger{background:var(--danger);border:0;}
+    input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;}
+    footer{padding:20px 0;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--border);}
+    .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
+    .corner-panel{width:380px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+    .hidden{display:none;}
+    .muted{color:var(--muted);font-size:13px;}
+    .badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
+    .accent-text{color:var(--accent);font-weight:600;}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Scoreboard — Painel de Pontuação</h1>
-      <div class="right">
-        <div class="badge" id="statusBadge">Modo de edição: <span id="editState">Bloqueado</span></div>
-      </div>
-    </header><section class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div>
-      <div class="muted">Campeonato</div>
-      <div style="font-weight:800">FSA CUP</div>
-    </div>
-    <div class="muted">Dados salvos localmente no navegador (localStorage)</div>
-  </div>
-
-  <table id="scoreTable" class="scoreboard">
+  <header>
+    <h1>🏆 FSA CUP</h1>
+    <div class="badge">Painel Oficial de Pontuação</div>
+  </header>  <div class="container">
+    <section class="card">
+      <h2>Ranking de Times</h2>
+      <table id="scoreTable">
+        <thead>
+          <tr><th>#</th><th>Time</th><th>Pontos</th><th class="editCol">Ações</th></tr>
+        </thead>
+        <tbody id="tbodyTeams"></tbody>
+      </table>
+    </section><section class="card">
+  <h2>Ranking de Players</h2>
+  <table id="playersTable">
     <thead>
-      <tr>
-        <th>#</th>
-        <th>Time</th>
-        <th>Pontos</th>
-        <th class="editCol">Ações</th>
-      </tr>
+      <tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th class="editCol">Ações</th></tr>
     </thead>
-    <tbody id="tbodyTeams"></tbody>
+    <tbody id="tbodyPlayers"></tbody>
   </table>
-
-  <div style="height:12px"></div>
-  <div class="muted">Atalhos: clique no ponto para editar rápido no modo edição. Visitantes só veem a tabela e o botão discreto no canto.</div>
 </section>
 
-<footer>
-  Desenvolvido — Versão com editor discreto no canto. Segurança: a senha está verificada no cliente; para proteção real, use backend.
-</footer>
-
-  </div>  <!-- Editor discreto no canto -->  <div class="editor-corner" id="editorCorner">
-    <div class="corner-btn" id="btnLock" title="Abrir editor (requer senha)">🔒</div><div id="cornerPanel" class="card corner-panel hidden">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div>
-      <div class="muted">Área de Edição</div>
-      <div style="font-weight:800">Editor Seguro</div>
+<div class="editor-corner">
+  <div class="corner-panel">
+    <div id="loginBox">
+      <div class="muted">Acesso restrito ao administrador</div>
+      <input id="inputPwd" type="password" placeholder="Senha" style="width:100%;margin-top:8px" />
+      <div style="margin-top:10px;text-align:right"><button id="btnSubmitPwd" class="primary">Entrar</button></div>
     </div>
-    <div id="cornerControls"></div>
-  </div>
 
-  <div style="height:12px"></div>
+    <div id="editorBox" class="hidden">
+      <div class="muted">Modo Edição Ativo</div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:10px 0"/>
 
-  <div id="loginBox">
-    <input id="inputPwd" type="password" placeholder="Senha" style="width:100%" />
-    <div style="height:8px"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="btnPwdCancel">Fechar</button>
-      <button id="btnSubmitPwd" class="primary">Entrar</button>
-    </div>
-  </div>
+      <form id="addTeamForm" style="margin-bottom:10px">
+        <input id="teamName" placeholder="Nome do time" required />
+        <input id="teamScore" type="number" value="0" required style="width:80px" />
+        <button class="primary" type="submit">Adicionar Time</button>
+      </form>
 
-  <div id="editorBox" class="hidden">
-    <form id="addForm" class="inline">
-      <input id="teamName" placeholder="Nome do time" required />
-      <input id="teamScore" type="number" value="0" required style="width:100px" />
-      <button class="primary" type="submit">Adicionar / Atualizar</button>
-    </form>
+      <form id="addPlayerForm" style="margin-bottom:10px">
+        <input id="playerName" placeholder="Nome do player" required />
+        <select id="playerTeam"></select>
+        <input id="playerKills" type="number" value="0" style="width:70px" required />
+        <button class="primary" type="submit">Adicionar Player</button>
+      </form>
 
-    <div style="height:12px"></div>
-    <div class="muted">Importar / Exportar JSON</div>
-    <div style="display:flex;gap:8px;margin-top:8px">
       <button id="btnExport">Exportar JSON</button>
-      <input id="importArea" placeholder='Cole JSON aqui' style="flex:1" />
+      <input id="importArea" placeholder='Cole JSON aqui' style="width:100%;margin-top:6px" />
       <button id="btnImport">Importar</button>
-    </div>
-
-    <div style="height:12px"></div>
-    <div style="display:flex;gap:8px">
-      <button id="btnClear" class="danger">Apagar tudo</button>
-      <button id="btnLogout">Sair do editor</button>
+      <button id="btnClear" class="danger" style="margin-top:8px">Apagar Tudo</button>
+      <button id="btnLogout" style="margin-top:8px">Sair</button>
     </div>
   </div>
-
-  <div style="height:8px"></div>
-  <div class="hint">Editor persistente: ao entrar com a senha, o modo de edição fica **ativado e salvo** no navegador. Ninguém verá o painel salvo se não souber a senha.</div>
 </div>
 
-  </div><script>
-// Configuração: senha de edição (fornecida pelo dono do site)
-const EDIT_PASSWORD = '5887'; // NOTE: client-side; visível no código
+  </div>  <footer>
+    © 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para uso administrativo seguro.
+  </footer><script>
+const EDIT_PASSWORD = '5887';
+const STORAGE_TEAMS = 'fsa_teams';
+const STORAGE_PLAYERS = 'fsa_players';
+const STORAGE_AUTH = 'fsa_auth';
 
-// Keys
-const STORAGE_TEAMS = 'scoreboard_v1';
-const STORAGE_AUTH = 'scoreboard_edit_auth_v1';
-
-// Estado
 let editMode = false;
 let teams = [];
-let editingIndex = -1;
+let players = [];
 
-// Elementos
-const tbody = document.getElementById('tbodyTeams');
-const statusBadge = document.getElementById('editState');
-const btnLock = document.getElementById('btnLock');
-const cornerPanel = document.getElementById('cornerPanel');
-const loginBox = document.getElementById('loginBox');
-const editorBox = document.getElementById('editorBox');
-const inputPwd = document.getElementById('inputPwd');
-const btnSubmitPwd = document.getElementById('btnSubmitPwd');
-const btnPwdCancel = document.getElementById('btnPwdCancel');
-const addForm = document.getElementById('addForm');
-const teamName = document.getElementById('teamName');
-const teamScore = document.getElementById('teamScore');
-const btnClear = document.getElementById('btnClear');
-const btnExport = document.getElementById('btnExport');
-const btnImport = document.getElementById('btnImport');
-const importArea = document.getElementById('importArea');
-const btnLogout = document.getElementById('btnLogout');
-const cornerControls = document.getElementById('cornerControls');
+const tbodyTeams=document.getElementById('tbodyTeams');
+const tbodyPlayers=document.getElementById('tbodyPlayers');
+const loginBox=document.getElementById('loginBox');
+const editorBox=document.getElementById('editorBox');
+const inputPwd=document.getElementById('inputPwd');
+const addTeamForm=document.getElementById('addTeamForm');
+const addPlayerForm=document.getElementById('addPlayerForm');
+const teamName=document.getElementById('teamName');
+const teamScore=document.getElementById('teamScore');
+const playerName=document.getElementById('playerName');
+const playerTeam=document.getElementById('playerTeam');
+const playerKills=document.getElementById('playerKills');
+const btnSubmitPwd=document.getElementById('btnSubmitPwd');
+const btnExport=document.getElementById('btnExport');
+const btnImport=document.getElementById('btnImport');
+const btnClear=document.getElementById('btnClear');
+const btnLogout=document.getElementById('btnLogout');
+const importArea=document.getElementById('importArea');
 
-// Inicialização
-load();
-render();
-initAuthFromStorage();
+loadAll();
+initAuth();
+renderAll();
 updateUI();
 
-// Event listeners
-btnLock.addEventListener('click', ()=>{ cornerPanel.classList.toggle('hidden'); inputPwd.value=''; inputPwd.focus(); });
-btnPwdCancel.addEventListener('click', ()=>{ cornerPanel.classList.add('hidden'); });
-btnSubmitPwd.addEventListener('click', attemptLogin);
-btnLogout.addEventListener('click', ()=>{ setAuth(false); alert('Saindo do modo edição'); updateUI(); });
+btnSubmitPwd.onclick=()=>{if(inputPwd.value===EDIT_PASSWORD){editMode=true;saveAuth();updateUI();alert('Edição liberada');}else alert('Senha incorreta');};
+addTeamForm.onsubmit=e=>{e.preventDefault();if(!editMode)return;teams.push({name:teamName.value,score:+teamScore.value});saveAll();renderAll();updatePlayerOptions();teamName.value='';teamScore.value='0';};
+addPlayerForm.onsubmit=e=>{e.preventDefault();if(!editMode)return;players.push({name:playerName.value,team:playerTeam.value,kills:+playerKills.value});saveAll();renderAll();playerName.value='';playerKills.value='0';};
+btnExport.onclick=()=>{const data=JSON.stringify({teams,players},null,2);navigator.clipboard.writeText(data);alert('Copiado JSON para área de transferência');};
+btnImport.onclick=()=>{if(!editMode)return;try{const data=JSON.parse(importArea.value);teams=data.teams||[];players=data.players||[];saveAll();renderAll();updatePlayerOptions();alert('Importado com sucesso');}catch(e){alert('Erro ao importar');}};
+btnClear.onclick=()=>{if(!editMode)return;if(confirm('Apagar tudo?')){teams=[];players=[];saveAll();renderAll();updatePlayerOptions();}};
+btnLogout.onclick=()=>{editMode=false;saveAuth();updateUI();alert('Modo edição desativado');};
 
-addForm.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  if(!editMode){ alert('Entre com a senha para editar'); return; }
-  const name = teamName.value.trim();
-  const score = Number(teamScore.value) || 0;
-  if(!name) return;
-  if(editingIndex >= 0){
-    teams[editingIndex] = { name, score };
-    editingIndex = -1;
-  } else {
-    teams.push({ name, score });
-  }
-  save(); render();
-  teamName.value=''; teamScore.value='0';
-});
+document.getElementById('scoreTable').addEventListener('click',e=>{if(!editMode)return;const td=e.target.closest('td');if(!td||!td.classList.contains('score'))return;const row=td.parentElement;const i=[...tbodyTeams.children].indexOf(row);if(i>=0){teams[i].score++;saveAll();renderAll();}});
 
-btnClear.addEventListener('click', ()=>{
-  if(!editMode) { alert('Modo edição necessário'); return; }
-  if(!confirm('Apagar todos os times?')) return;
-  teams = []; save(); render();
-});
+document.getElementById('playersTable').addEventListener('click',e=>{if(!editMode)return;const td=e.target.closest('td');if(!td||!td.classList.contains('score'))return;const row=td.parentElement;const i=[...tbodyPlayers.children].indexOf(row);if(i>=0){players[i].kills++;saveAll();renderAll();}});
 
-btnExport.addEventListener('click', ()=>{
-  const data = JSON.stringify({ teams }, null, 2);
-  navigator.clipboard?.writeText(data);
-  alert('JSON copiado para a área de transferência.');
-});
-
-btnImport.addEventListener('click', ()=>{
-  if(!editMode) { alert('Modo edição necessário'); return; }
-  try{
-    const obj = JSON.parse(importArea.value);
-    if(!Array.isArray(obj.teams)) throw new Error('Formato inválido');
-    teams = obj.teams.map(t=>({ name: String(t.name||''), score: Number(t.score||0) }));
-    save(); render(); alert('Importado com sucesso');
-  }catch(err){ alert('Erro ao importar: '+err.message); }
-});
-
-// Render
-function render(){
-  tbody.innerHTML = '';
-  teams.sort((a,b)=>b.score - a.score);
-  teams.forEach((t,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i+1}</td>
-      <td>${escapeHtml(t.name)}</td>
-      <td class="score">${t.score}</td>
-      <td class="editCol">${editMode?`<button data-i="${i}" class="btnEdit">Editar</button> <button data-i="${i}" class="btnDel">Excluir</button>`:''}</td>`;
-    tbody.appendChild(tr);
-  });
-  // attach edit handlers
-  document.querySelectorAll('.btnEdit').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const i = Number(btn.getAttribute('data-i'));
-      editingIndex = i;
-      teamName.value = teams[i].name;
-      teamScore.value = teams[i].score;
-      cornerPanel.scrollIntoView({behavior:'smooth'});
-    });
-  });
-  document.querySelectorAll('.btnDel').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const i = Number(btn.getAttribute('data-i'));
-      if(confirm('Excluir time "'+teams[i].name+'"?')){ teams.splice(i,1); save(); render(); }
-    });
-  });
-}
-
-// Storage
-function save(){ localStorage.setItem(STORAGE_TEAMS, JSON.stringify(teams)); }
-function load(){ try{ const raw = localStorage.getItem(STORAGE_TEAMS); if(raw) teams = JSON.parse(raw); }catch(e){ teams = []; } }
-
-function setAuth(val){ editMode = !!val; localStorage.setItem(STORAGE_AUTH, editMode ? '1' : '0'); updateUI(); }
-function initAuthFromStorage(){ try{ const v = localStorage.getItem(STORAGE_AUTH); if(v==='1') editMode = true; else editMode = false; }catch(e){ editMode = false; } }
-
-// Auth
-function attemptLogin(){ const val = inputPwd.value.trim(); if(val === EDIT_PASSWORD){ setAuth(true); cornerPanel.classList.remove('hidden'); alert('Modo edição habilitado'); } else { alert('Senha incorreta'); } }
-
-// UI update
-function updateUI(){ document.querySelectorAll('.editCol').forEach(el=>el.style.display = editMode ? '' : 'none');
-  editorBox.classList.toggle('hidden', !editMode);
-  loginBox.classList.toggle('hidden', editMode);
-  statusBadge.textContent = editMode ? 'Liberado' : 'Bloqueado';
-  btnLock.textContent = editMode ? '🔓' : '🔒';
-  // corner controls
-  cornerControls.innerHTML = editMode ? '<span class="muted">Edit</span>' : '';
-}
-
-// Helpers
-function escapeHtml(s){ return String(s).replace(/[&<>\\"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
-
-// Convenience: click on score cell increments by 1 only in edit mode (persisted)
-tbody.addEventListener('click', e=>{
-  const td = e.target.closest('td');
-  if(!td) return;
-  const row = td.parentElement; const idx = Array.from(tbody.children).indexOf(row);
-  if(idx<0) return;
-  if(editMode && td.classList.contains('score')){
-    teams[idx].score = Number(teams[idx].score) + 1;
-    save(); render();
-  }
-});
-
+function renderAll(){renderTeams();renderPlayers();updatePlayerOptions();}
+function renderTeams(){tbodyTeams.innerHTML='';teams.sort((a,b)=>b.score-a.score);teams.forEach((t,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td class='score'>${t.score}</td><td class='editCol'>${editMode?`<button onclick='editTeam(${i})'>Editar</button><button onclick='delTeam(${i})'>Excluir</button>`:''}</td>`;tbodyTeams.appendChild(tr);});}
+function renderPlayers(){tbodyPlayers.innerHTML='';players.sort((a,b)=>b.kills-a.kills);players.forEach((p,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class='score'>${p.kills}</td><td class='editCol'>${editMode?`<button onclick='editPlayer(${i})'>Editar</button><button onclick='delPlayer(${i})'>Excluir</button>`:''}</td>`;tbodyPlayers.appendChild(tr);});}
+function updatePlayerOptions(){playerTeam.innerHTML='<option value="">— Time —</option>'+teams.map(t=>`<option>${t.name}</option>`).join('');}
+function editTeam(i){const t=teams[i];teamName.value=t.name;teamScore.value=t.score;teams.splice(i,1);}
+function editPlayer(i){const p=players[i];playerName.value=p.name;playerTeam.value=p.team;playerKills.value=p.kills;players.splice(i,1);}
+function delTeam(i){if(confirm('Excluir time '+teams[i].name+'?')){const rem=teams.splice(i,1)[0];players=players.map(p=>p.team===rem.name?{...p,team:''}:p);saveAll();renderAll();updatePlayerOptions();}}
+function delPlayer(i){if(confirm('Excluir player '+players[i].name+'?')){players.splice(i,1);saveAll();renderAll();}}
+function loadAll(){teams=JSON.parse(localStorage.getItem(STORAGE_TEAMS)||'[]');players=JSON.parse(localStorage.getItem(STORAGE_PLAYERS)||'[]');}
+function saveAll(){localStorage.setItem(STORAGE_TEAMS,JSON.stringify(teams));localStorage.setItem(STORAGE_PLAYERS,JSON.stringify(players));}
+function saveAuth(){localStorage.setItem(STORAGE_AUTH,editMode?'1':'0');}
+function initAuth(){editMode=localStorage.getItem(STORAGE_AUTH)==='1';}
+function updateUI(){loginBox.classList.toggle('hidden',editMode);editorBox.classList.toggle('hidden',!editMode);}
 </script></body>
           </html>
