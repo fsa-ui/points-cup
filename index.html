@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Painel Campeonato FSA CUP</title>
+<style>
+/* [TODO O CSS ANTERIOR PERMANECE IGUAL] */
+:root{
+  --bg:#0a0e1a; --card:#0f172a; --accent:#eab308;
+  --muted:#9aa4b2; --danger:#ef4444; --border:rgba(255,255,255,0.08);
+  --gold:#ffd700; --silver:#c0c0c0; --bronze:#cd7f32;
+  --mvpWin:#ffea00; --mvpLose:#aaaaaa;
+}
+*{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
+body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
+header h1{color:var(--accent);letter-spacing:2px;}
+.container{max-width:1200px;margin:30px auto;padding:0 20px;}
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:24px;box-shadow:0 8px 20px rgba(0,0,0,0.5);}
+h2{color:var(--accent);margin-bottom:16px;text-transform:uppercase;}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--muted);font-size:13px;text-transform:uppercase;}
+td{font-weight:600;transition:0.3s;}
+tr:nth-child(even){background:rgba(255,255,255,0.02);}
+td.gold{color:var(--gold);font-weight:700;}
+td.silver{color:var(--silver);font-weight:700;}
+td.bronze{color:var(--bronze);font-weight:700;}
+td.mvpWin{color:var(--mvpWin);font-weight:700;}
+td.mvpLose{color:var(--mvpLose);font-weight:700;}
+table tr:hover{background:rgba(255,255,255,0.08);}
+button{background:transparent;border:1px solid var(--border);padding:8px 16px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;font-size:14px;margin-left:4px;}
+button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
+button.primary:hover{filter:brightness(1.1);}
+button.danger{background:var(--danger);border:0;}
+input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;width:100%;margin-bottom:8px;}
+.editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
+.corner-panel{width:480px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.hidden{display:none;}
+.muted{color:var(--muted);font-size:13px;}
+.badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
+.match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
+.match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
+.room-title{margin-top:12px;color:var(--accent);font-weight:600;}
+.history-room{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px;background:rgba(255,255,255,0.02);}
+.history-table{margin-top:6px;font-size:13px;width:100%;}
+.history-table th, .history-table td{text-align:center;}
+.search-room{margin-bottom:12px;padding:8px;border-radius:8px;border:1px solid var(--border);width:100%;}
+footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
+.loading{text-align:center;padding:20px;color:var(--muted);}
+
+.toggle-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  flex: 1;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.section-content {
+  transition: all 0.3s ease;
+}
+
+.status-bar {
+  background: var(--card);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.status-online {
+  color: #10b981;
+}
+
+.status-offline {
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏆 FSA CUP</h1>
+  <div class="badge">Painel Oficial de Pontuação</div>
+</header>
+
+<div class="container">
+  <div class="status-bar" id="statusBar">
+    <span id="statusText">🔄 Carregando dados...</span>
+  </div>
+
+  <div class="toggle-buttons">
+    <button class="toggle-btn active" onclick="showSection('times')">🏆 Ranking de Times</button>
+    <button class="toggle-btn" onclick="showSection('players')">👤 Ranking de Players</button>
+    <button class="toggle-btn" onclick="showSection('historico')">📊 Histórico de Salas</button>
+  </div>
+
+  <section class="card section-content" id="section-times">
+    <h2>Ranking de Times</h2>
+    <table id="tabelaTimes">
+      <thead><tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr></thead>
+      <tbody id="corpoTimes"></tbody>
+    </table>
+  </section>
+
+  <section class="card section-content hidden" id="section-players">
+    <h2>Ranking de Players</h2>
+    <table id="tabelaPlayers">
+      <thead><tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr></thead>
+      <tbody id="corpoPlayers"></tbody>
+    </table>
+  </section>
+
+  <section class="card section-content hidden" id="section-historico">
+    <h2>Histórico de Salas</h2>
+    <input type="text" id="pesquisarSala" class="search-room" placeholder="Pesquisar Sala..." oninput="renderHistorico()" />
+    <div id="historicoSalas"></div>
+  </section>
+</div>
+
+<div class="editor-corner">
+  <button id="botaoPainel" style="background:var(--accent);border:none;color:#000;border-radius:50%;width:50px;height:50px;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);">⚙️</button>
+  <div id="painelAdmin" class="corner-panel hidden">
+    <div id="loginAdmin">
+      <div class="muted">Acesso restrito ao administrador</div>
+      <input type="password" id="senhaAdmin" placeholder="Senha" />
+      <div style="margin-top:10px;text-align:right">
+        <button class="primary" onclick="entrarAdmin()">Entrar</button>
+      </div>
+    </div>
+
+    <div id="editorAdmin" class="hidden">
+      <div class="muted">Modo Edição Ativo</div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;"/>
+
+      <h4>Adicionar Time</h4>
+      <input id="nomeTime" placeholder="Nome do Time" />
+      <input id="pontosTime" type="number" value="0" />
+      <button class="primary" onclick="adicionarTime()">Adicionar Time</button>
+
+      <h4 style="margin-top: 20px;">Adicionar Player</h4>
+      <input id="nomePlayer" placeholder="Nome do Player" />
+      <select id="timePlayer"></select>
+      <input id="killsPlayer" type="number" value="0" />
+      <button class="primary" onclick="adicionarPlayer()">Adicionar Player</button>
+
+      <h4 style="margin-top: 20px;">Adicionar Sala</h4>
+      <input id="nomeSala" type="text" placeholder="Nome da Sala" />
+      <div id="placaresTimes"></div>
+      <div id="placaresPlayers"></div>
+      <button class="primary" onclick="adicionarSala()">Adicionar Sala</button>
+
+      <div style="margin-top: 20px;">
+        <button onclick="exportarJSON()">Exportar JSON</button>
+        <button class="danger" onclick="limparTudo()" style="margin-top:6px;">Apagar Tudo</button>
+        <button onclick="sairAdmin()" style="margin-top:6px;">Sair</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2025 FSA CUP — Sistema de Pontuação Oficial | Dados online</footer>
+
+<script>
+// =============================================
+// CONFIGURAÇÃO DO JSONBIN.IO - COLE SUAS KEYS AQUI!
+// =============================================
+
+// SUBSTITUA ESTAS DUAS LINHAS COM SUAS PRÓPRIAS KEYS:
+const JSONBIN_BIN_ID = '68fdaba443b1c97be98188e6'; // Exemplo: '67d4a9eae41b4d34e4017a4d'
+const JSONBIN_API_KEY = '$2a$10$uoBph8Gr2HR.bz4GEFAT0eJZSU4j/coslPEEtNdryxBIGqzLWrA2m'; // Exemplo: '$2a$10$QdT7b2x5f5G5v5J5d5V5O...'
+
+// =============================================
+// NÃO ALTERE O CÓDIGO ABAIXO DESTA LINHA
+// =============================================
+
+// Dados globais
+let editMode = false;
+let times = [];
+let players = [];
+let salas = [];
+
+// Elementos DOM
+const statusBar = document.getElementById('statusBar');
+const statusText = document.getElementById('statusText');
+
+// Função para mostrar seções
+function showSection(sectionName) {
+    // Remove active de todos os botões
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Adiciona active no botão clicado
+    event.target.classList.add('active');
+    
+    // Esconde todas as seções
+    document.querySelectorAll('.section-content').forEach(section => {
+        section.classList.add('hidden');
+    });
+    
+    // Mostra a seção alvo
+    document.getElementById(`section-${sectionName}`).classList.remove('hidden');
+    
+    // Renderiza se necessário
+    if (sectionName === 'historico') {
+        renderHistorico();
+    }
+}
+
+// Função para atualizar status
+function updateStatus(message, isOnline = true) {
+    statusText.innerHTML = isOnline ? `✅ ${message}` : `❌ ${message}`;
+    statusBar.className = `status-bar ${isOnline ? 'status-online' : 'status-offline'}`;
+}
+
+// SISTEMA ONLINE COM JSONBIN
+async function carregarDadosOnline() {
+    try {
+        updateStatus('Carregando dados online...');
+        
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+            headers: {
+                'X-Master-Key': JSONBIN_API_KEY
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar dados');
+        }
+        
+        const data = await response.json();
+        const record = data.record;
+        
+        times = record.times || [];
+        players = record.players || [];
+        salas = record.salas || [];
+        
+        updateStatus('Dados carregados com sucesso!');
+        renderAll();
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        updateStatus('Usando dados locais - Sem conexão', false);
+        
+        // Fallback para localStorage
+        times = JSON.parse(localStorage.getItem('campeonatoTimes') || '[]');
+        players = JSON.parse(localStorage.getItem('campeonatoPlayers') || '[]');
+        salas = JSON.parse(localStorage.getItem('campeonatoSalas') || '[]');
+        renderAll();
+    }
+}
+
+async function salvarDadosOnline() {
+    try {
+        updateStatus('Salvando dados online...');
+        
+        const data = {
+            times,
+            players,
+            salas,
+            lastUpdate: new Date().toISOString()
+        };
+        
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': JSONBIN_API_KEY
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao salvar dados');
+        }
+        
+        updateStatus('Dados salvos online! Todos os dispositivos serão atualizados.');
+        
+        // Também salva localmente como backup
+        localStorage.setItem('campeonatoTimes', JSON.stringify(times));
+        localStorage.setItem('campeonatoPlayers', JSON.stringify(players));
+        localStorage.setItem('campeonatoSalas', JSON.stringify(salas));
+        
+    } catch (error) {
+        console.error('Erro ao salvar online:', error);
+        updateStatus('Erro ao salvar online - usando localStorage', false);
+        
+        // Fallback para localStorage
+        localStorage.setItem('campeonatoTimes', JSON.stringify(times));
+        localStorage.setItem('campeonatoPlayers', JSON.stringify(players));
+        localStorage.setItem('campeonatoSalas', JSON.stringify(salas));
+    }
+}
+
+// [TODO O RESTO DO CÓDIGO JavaScript PERMANECE IGUAL...]
+// Painel Administrativo, funções de renderização, etc.
+
+document.getElementById('botaoPainel').addEventListener('click', function() {
+    const painel = document.getElementById('painelAdmin');
+    painel.classList.toggle('hidden');
+});
+
+function entrarAdmin() {
+    const senha = document.getElementById('senhaAdmin').value;
+    if (senha === '5887') {
+        editMode = true;
+        document.getElementById('loginAdmin').classList.add('hidden');
+        document.getElementById('editorAdmin').classList.remove('hidden');
+        renderAll();
+        alert('Modo Edição Ativo - Suas edições aparecerão para todos os dispositivos!');
+    } else {
+        alert('Senha incorreta');
+    }
+}
+
+function sairAdmin() {
+    editMode = false;
+    document.getElementById('editorAdmin').classList.add('hidden');
+    document.getElementById('loginAdmin').classList.remove('hidden');
+    renderAll();
+}
+
+// Funções de renderização
+function renderAll() {
+    renderTimes();
+    renderPlayers();
+    atualizarTimesOptions();
+    renderPlacares();
+    renderHistorico();
+}
+
+function renderTimes() {
+    const corpoTimes = document.getElementById('corpoTimes');
+    if (!corpoTimes) return;
+    
+    corpoTimes.innerHTML = '';
+    const timesSorted = [...times].sort((a, b) => (b.points || 0) - (a.points || 0));
+    
+    timesSorted.forEach((t, i) => {
+        const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        const idx = times.findIndex(x => x.name === t.name);
+        
+        const botoesAcoes = editMode 
+            ? `<td>
+                <button onclick="editarTime(${idx})">✏️</button>
+                <button onclick="excluirTime(${idx})" class="danger">🗑️</button>
+              </td>`
+            : '<td>-</td>';
+        
+        corpoTimes.innerHTML += `<tr>
+            <td>${i + 1}</td>
+            <td>${t.name}</td>
+            <td class="${cls}">${t.points || 0}</td>
+            ${botoesAcoes}
+        </tr>`;
+    });
+}
+
+function renderPlayers() {
+    const corpoPlayers = document.getElementById('corpoPlayers');
+    if (!corpoPlayers) return;
+    
+    corpoPlayers.innerHTML = '';
+    const playersSorted = [...players].sort((a, b) => (b.kills || 0) - (a.kills || 0));
+    
+    playersSorted.forEach((p, i) => {
+        const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        const idx = players.findIndex(x => x.name === p.name && x.team === p.team);
+        
+        const botoesAcoes = editMode 
+            ? `<td>
+                <button onclick="editarPlayer(${idx})">✏️</button>
+                <button onclick="excluirPlayer(${idx})" class="danger">🗑️</button>
+              </td>`
+            : '<td>-</td>';
+        
+        corpoPlayers.innerHTML += `<tr>
+            <td>${i + 1}</td>
+            <td>${p.name}</td>
+            <td>${p.team}</td>
+            <td class="${cls}">${p.kills || 0}</td>
+            ${botoesAcoes}
+        </tr>`;
+    });
+}
+
+function atualizarTimesOptions() {
+    const timePlayer = document.getElementById('timePlayer');
+    if (!timePlayer) return;
+    
+    timePlayer.innerHTML = '<option value="">Selecione o time</option>';
+    times.forEach(t => {
+        timePlayer.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+    });
+}
+
+function renderPlacares() {
+    const placaresTimes = document.getElementById('placaresTimes');
+    const placaresPlayers = document.getElementById('placaresPlayers');
+    
+    if (placaresTimes) {
+        placaresTimes.innerHTML = times.map((t, i) => 
+            `<div class="match-container">
+                <label>${t.name}</label>
+                <input type="number" id="placarTime${i}" value="0"/>
+            </div>`
+        ).join('');
+    }
+    
+    if (placaresPlayers) {
+        placaresPlayers.innerHTML = players.map((p, i) => 
+            `<div class="match-container">
+                <label>${p.name}</label>
+                <input type="number" id="placarPlayer${i}" value="0"/>
+            </div>`
+        ).join('');
+    }
+}
+
+function renderHistorico() {
+    const historicoSalas = document.getElementById('historicoSalas');
+    const pesquisarSala = document.getElementById('pesquisarSala');
+    
+    if (!historicoSalas) return;
+    
+    historicoSalas.innerHTML = '';
+    const filtro = pesquisarSala ? pesquisarSala.value.toLowerCase() : '';
+    
+    salas.filter(s => s.nome.toLowerCase().includes(filtro)).forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'history-room';
+        div.innerHTML = `<div class="room-title">Sala: ${s.nome}</div>`;
+        
+        const maxPoints = Math.max(...s.times.map(t => t.points));
+        const vencedores = s.times.filter(t => t.points === maxPoints).map(t => t.name);
+        
+        let tTable = '<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
+        s.times.forEach(ts => {
+            tTable += `<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`;
+        });
+        tTable += '</tbody></table>';
+        
+        let pTable = '<table class="history-table"><thead><tr><th>Player</th><th>Kills</th><th>MVP</th></tr></thead><tbody>';
+        s.players.forEach(ps => {
+            const timeVencedor = vencedores.includes(ps.team);
+            const killsNoTime = s.players.filter(pl => pl.team === ps.team).map(pl => pl.kills);
+            const maxKillsTime = killsNoTime.length ? Math.max(...killsNoTime) : 0;
+            const isMVP = ps.kills === maxKillsTime && maxKillsTime > 0;
+            let cls = '';
+            if (isMVP && timeVencedor) cls = 'mvpWin';
+            else if (isMVP && !timeVencedor) cls = 'mvpLose';
+            pTable += `<tr><td>${ps.name}</td><td>${ps.kills}</td><td class="${cls}">${isMVP ? 'MVP' : ''}</td></tr>`;
+        });
+        pTable += '</tbody></table>';
+        
+        div.innerHTML += tTable + pTable;
+        historicoSalas.appendChild(div);
+    });
+}
+
+// Funções de edição
+async function adicionarTime() {
+    const nome = document.getElementById('nomeTime').value.trim();
+    const pontos = +document.getElementById('pontosTime').value || 0;
+    
+    if (!nome) {
+        alert('Digite um nome para o time');
+        return;
+    }
+    
+    if (times.some(t => t.name === nome)) {
+        alert('Time já existe');
+        return;
+    }
+    
+    times.push({ name: nome, points: pontos });
+    await salvarDadosOnline();
+    renderAll();
+    
+    document.getElementById('nomeTime').value = '';
+    document.getElementById('pontosTime').value = '0';
+}
+
+async function adicionarPlayer() {
+    const nome = document.getElementById('nomePlayer').value.trim();
+    const team = document.getElementById('timePlayer').value;
+    const kills = +document.getElementById('killsPlayer').value || 0;
+    
+    if (!nome || !team) {
+        alert('Preencha nome e time');
+        return;
+    }
+    
+    if (players.some(p => p.name === nome && p.team === team)) {
+        alert('Player já existe neste time');
+        return;
+    }
+    
+    players.push({ name: nome, team, kills });
+    await salvarDadosOnline();
+    renderAll();
+    
+    document.getElementById('nomePlayer').value = '';
+    document.getElementById('killsPlayer').value = '0';
+}
+
+async function adicionarSala() {
+    const nomeSala = document.getElementById('nomeSala').value.trim();
+    if (!nomeSala) {
+        alert('Digite um nome para a sala');
+        return;
+    }
+    
+    const salaTimes = times.map((t, i) => ({
+        name: t.name,
+        points: +document.getElementById(`placarTime${i}`).value || 0
+    }));
+    
+    const salaPlayers = players.map((p, i) => ({
+        name: p.name,
+        team: p.team,
+        kills: +document.getElementById(`placarPlayer${i}`).value || 0
+    }));
+    
+    salas.push({
+        nome: nomeSala,
+        times: salaTimes,
+        players: salaPlayers,
+        createdAt: new Date().toISOString()
+    });
+    
+    // Atualizar rankings
+    salaTimes.forEach(st => {
+        const timeObj = times.find(t => t.name === st.name);
+        if (timeObj) timeObj.points = (timeObj.points || 0) + (st.points || 0);
+    });
+    
+    salaPlayers.forEach(sp => {
+        const playerObj = players.find(p => p.name === sp.name && p.team === sp.team);
+        if (playerObj) playerObj.kills = (playerObj.kills || 0) + (sp.kills || 0);
+    });
+    
+    await salvarDadosOnline();
+    renderAll();
+    
+    document.getElementById('nomeSala').value = '';
+}
+
+window.editarTime = async function(i) {
+    if (i < 0 || i >= times.length) return;
+    const novoNome = prompt('Novo nome do time:', times[i].name);
+    if (novoNome) times[i].name = novoNome;
+    const novosPontos = prompt('Novos pontos:', times[i].points);
+    if (!isNaN(novosPontos) && novosPontos !== null) {
+        times[i].points = +novosPontos;
+    }
+    await salvarDadosOnline();
+    renderAll();
+};
+
+window.excluirTime = async function(i) {
+    if (i < 0 || i >= times.length) return;
+    if (confirm('Deseja excluir este time?')) {
+        const nome = times[i].name;
+        times.splice(i, 1);
+        players = players.filter(p => p.team !== nome);
+        await salvarDadosOnline();
+        renderAll();
+    }
+};
+
+window.editarPlayer = async function(i) {
+    if (i < 0 || i >= players.length) return;
+    const novoNome = prompt('Novo nome:', players[i].name);
+    if (novoNome) players[i].name = novoNome;
+    const novoTime = prompt('Novo time:', players[i].team);
+    if (novoTime) players[i].team = novoTime;
+    const novasKills = prompt('Novas kills:', players[i].kills);
+    if (!isNaN(novasKills) && novasKills !== null) {
+        players[i].kills = +novasKills;
+    }
+    await salvarDadosOnline();
+    renderAll();
+};
+
+window.excluirPlayer = async function(i) {
+    if (i < 0 || i >= players.length) return;
+    if (confirm('Deseja excluir este player?')) {
+        players.splice(i, 1);
+        await salvarDadosOnline();
+        renderAll();
+    }
+};
+
+function exportarJSON() {
+    const data = { times, players, salas };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fsa_cup_backup.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function limparTudo() {
+    if (!confirm('ATENÇÃO: Isso apagará TODOS os dados para todos os dispositivos!')) return;
+    
+    times = [];
+    players = [];
+    salas = [];
+    
+    await salvarDadosOnline();
+    renderAll();
+    alert('Todos os dados foram apagados!');
+}
+
+// Inicialização
+carregarDadosOnline();
+
+// Atualizar dados a cada 30 segundos
+setInterval(carregarDadosOnline, 30000);
+</script>
+</body>
+</html>
