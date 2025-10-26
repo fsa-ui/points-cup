@@ -1,156 +1,260 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Campeonato FSA CUP</title>
-  <style>
-    :root{
-      --bg: #0a0e1a;
-      --card: #0f172a;
-      --accent: #eab308;
-      --muted: #9aa4b2;
-      --danger: #ef4444;
-      --border: rgba(255,255,255,0.08);
-    }
-    *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
-    body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
-    header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
-    header h1{color:var(--accent);letter-spacing:2px;}
-    .container{max-width:1200px;margin:30px auto;padding:0 20px;}
-    .card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:24px;box-shadow:0 8px 20px rgba(0,0,0,0.5);}
-    h2{color:var(--accent);margin-bottom:16px;text-transform:uppercase;}
-    table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-    th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
-    th{color:var(--muted);font-size:13px;text-transform:uppercase;}
-    td{font-weight:600;}
-    tr:nth-child(even){background:rgba(255,255,255,0.02);}
-    .score{cursor:pointer;color:var(--accent);}
-    button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
-    button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
-    button.primary:hover{filter:brightness(1.1);}
-    button.danger{background:var(--danger);border:0;}
-    input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;width:100%;}
-    .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
-    .corner-panel{width:450px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s ease;}
-    .hidden{display:none;}
-    .muted{color:var(--muted);font-size:13px;}
-    .badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
-    .match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
-    .match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
-    .round-title{margin-top:12px;color:var(--accent);font-weight:600;}
-    .history-table{margin-top:6px;font-size:13px;width:100%;}
-    footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Campeonato FSA CUP</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#0f172a; --accent:#eab308;
+  --muted:#9aa4b2; --danger:#ef4444; --border:rgba(255,255,255,0.08);
+}
+*{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
+body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
+header h1{color:var(--accent);letter-spacing:2px;}
+.container{max-width:1200px;margin:30px auto;padding:0 20px;}
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:24px;box-shadow:0 8px 20px rgba(0,0,0,0.5);}
+h2{color:var(--accent);margin-bottom:16px;text-transform:uppercase;}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--muted);font-size:13px;text-transform:uppercase;}
+td{font-weight:600;}
+tr:nth-child(even){background:rgba(255,255,255,0.02);}
+.score{cursor:pointer;color:var(--accent);}
+button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
+button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
+button.primary:hover{filter:brightness(1.1);}
+button.danger{background:var(--danger);border:0;}
+input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;width:100%;}
+.editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
+.corner-panel{width:450px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s ease;}
+.hidden{display:none;}
+.muted{color:var(--muted);font-size:13px;}
+.badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
+.match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
+.match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
+.round-title{margin-top:12px;color:var(--accent);font-weight:600;}
+.history-table{margin-top:6px;font-size:13px;width:100%;}
+footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
+</style>
 </head>
 <body>
-  <header>
-    <h1>🏆 FSA CUP</h1>
-    <div class="badge">Painel Oficial de Pontuação</div>
-  </header>
+<header>
+<h1>🏆 FSA CUP</h1>
+<div class="badge">Painel Oficial de Pontuação</div>
+</header>
 
-  <div class="container">
-    <!-- Ranking Times -->
-    <section class="card">
-      <h2>Ranking de Times</h2>
-      <table id="tabelaTimes">
-        <thead>
-          <tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr>
-        </thead>
-        <tbody id="corpoTimes"></tbody>
-      </table>
-    </section>
+<div class="container">
+<section class="card">
+<h2>Ranking de Times</h2>
+<table id="tabelaTimes">
+<thead><tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr></thead>
+<tbody id="corpoTimes"></tbody>
+</table>
+</section>
 
-    <!-- Ranking Players -->
-    <section class="card">
-      <h2>Ranking de Players</h2>
-      <table id="tabelaPlayers">
-        <thead>
-          <tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr>
-        </thead>
-        <tbody id="corpoPlayers"></tbody>
-      </table>
-    </section>
+<section class="card">
+<h2>Ranking de Players</h2>
+<table id="tabelaPlayers">
+<thead><tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr></thead>
+<tbody id="corpoPlayers"></tbody>
+</table>
+</section>
 
-    <!-- Histórico de Rodadas -->
-    <section class="card">
-      <h2>Histórico de Rodadas</h2>
-      <div id="historicoRodadas"></div>
-    </section>
-  </div>
+<section class="card">
+<h2>Histórico de Rodadas</h2>
+<div id="historicoRodadas"></div>
+</section>
+</div>
 
-  <!-- Painel Admin -->
-  <div class="editor-corner">
-    <button id="botaoPainel" style="background:var(--accent);border:none;color:#000;border-radius:50%;width:50px;height:50px;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);">⚙️</button>
-    <div id="painelAdmin" class="corner-panel hidden">
-      <div id="loginAdmin">
-        <div class="muted">Acesso restrito ao administrador</div>
-        <input type="password" id="senhaAdmin" placeholder="Senha" style="margin-top:8px"/>
-        <div style="margin-top:10px;text-align:right">
-          <button id="entrarAdmin" class="primary">Entrar</button>
-        </div>
-      </div>
-      <div id="editorAdmin" class="hidden">
-        <div class="muted">Modo Edição Ativo</div>
-        <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;"/>
+<div class="editor-corner">
+<button id="botaoPainel" style="background:var(--accent);border:none;color:#000;border-radius:50%;width:50px;height:50px;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);">⚙️</button>
+<div id="painelAdmin" class="corner-panel hidden">
+<div id="loginAdmin">
+<div class="muted">Acesso restrito ao administrador</div>
+<input type="password" id="senhaAdmin" placeholder="Senha" style="margin-top:8px"/>
+<div style="margin-top:10px;text-align:right">
+<button id="entrarAdmin" class="primary">Entrar</button>
+</div>
+</div>
+<div id="editorAdmin" class="hidden">
+<div class="muted">Modo Edição Ativo</div>
+<hr style="border:0;border-top:1px solid var(--border);margin:10px 0;"/>
+<form id="formAddTime" style="margin-bottom:10px;">
+<input id="nomeTime" placeholder="Nome do Time" required/>
+<input id="pontosTime" type="number" value="0" required style="margin-top:6px;"/>
+<button type="submit" class="primary" style="margin-top:6px;">Adicionar Time</button>
+</form>
+<form id="formAddPlayer" style="margin-bottom:10px;">
+<input id="nomePlayer" placeholder="Nome do Player" required/>
+<select id="timePlayer"></select>
+<input id="killsPlayer" type="number" value="0" required style="margin-top:6px;"/>
+<button type="submit" class="primary" style="margin-top:6px;">Adicionar Player</button>
+</form>
+<form id="formRodada" style="margin-bottom:10px;">
+<input id="numRodada" type="number" placeholder="Número da Rodada" required style="margin-bottom:6px;"/>
+<div id="placaresTimes"></div>
+<div id="placaresPlayers" style="margin-top:6px;"></div>
+<button type="submit" class="primary" style="margin-top:6px;">Adicionar Rodada</button>
+</form>
+<button id="exportarJSON" style="margin-top:6px;">Exportar JSON</button>
+<input id="importarJSON" placeholder="Cole JSON aqui" style="margin-top:6px;"/>
+<button id="importarBtn">Importar</button>
+<button id="limparTudo" class="danger" style="margin-top:6px;">Apagar Tudo</button>
+<button id="sairAdmin" style="margin-top:6px;">Sair</button>
+</div>
+</div>
+</div>
 
-        <!-- Form Times -->
-        <form id="formAddTime" style="margin-bottom:10px;">
-          <input id="nomeTime" placeholder="Nome do Time" required/>
-          <input id="pontosTime" type="number" value="0" required style="margin-top:6px;"/>
-          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Time</button>
-        </form>
+<footer>
+© 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para campeonatos.
+</footer>
 
-        <!-- Form Players -->
-        <form id="formAddPlayer" style="margin-bottom:10px;">
-          <input id="nomePlayer" placeholder="Nome do Player" required/>
-          <select id="timePlayer"></select>
-          <input id="killsPlayer" type="number" value="0" required style="margin-top:6px;"/>
-          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Player</button>
-        </form>
+<script>
+// -------------------- Dados --------------------
+let editMode=false;
+let times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
+let players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
+let rodadas=JSON.parse(localStorage.getItem('campeonatoRodadas')||'[]');
 
-        <!-- Form Rodadas -->
-        <form id="formRodada" style="margin-bottom:10px;">
-          <input id="numRodada" type="number" placeholder="Número da Rodada" required style="margin-bottom:6px;"/>
-          <div id="placaresTimes"></div>
-          <div id="placaresPlayers" style="margin-top:6px;"></div>
-          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Rodada</button>
-        </form>
+// -------------------- Elementos --------------------
+const corpoTimes=document.getElementById('corpoTimes');
+const corpoPlayers=document.getElementById('corpoPlayers');
+const timePlayer=document.getElementById('timePlayer');
+const placaresTimes=document.getElementById('placaresTimes');
+const placaresPlayers=document.getElementById('placaresPlayers');
+const historicoRodadas=document.getElementById('historicoRodadas');
+const painelAdmin=document.getElementById('painelAdmin');
+const editorAdmin=document.getElementById('editorAdmin');
+const loginAdmin=document.getElementById('loginAdmin');
 
-        <button id="exportarJSON" style="margin-top:6px;">Exportar JSON</button>
-        <input id="importarJSON" placeholder="Cole JSON aqui" style="margin-top:6px;"/>
-        <button id="importarBtn">Importar</button>
-        <button id="limparTudo" class="danger" style="margin-top:6px;">Apagar Tudo</button>
-        <button id="sairAdmin" style="margin-top:6px;">Sair</button>
-      </div>
-    </div>
-  </div>
+// -------------------- Abrir/Fechar painel --------------------
+document.getElementById('botaoPainel').addEventListener('click',()=>{
+  painelAdmin.classList.toggle('hidden');
+});
 
-  <footer>
-    © 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para campeonatos.
-  </footer>
+// -------------------- Autenticação --------------------
+document.getElementById('entrarAdmin').addEventListener('click',()=>{
+  const senha=document.getElementById('senhaAdmin').value;
+  if(senha==='5887'){editMode=true;loginAdmin.classList.add('hidden');editorAdmin.classList.remove('hidden');renderAll(); alert('Modo Edição Ativo');}
+  else alert('Senha incorreta');
+});
 
-  <script>
-  // -------------------- Configurações --------------------
-  const SENHA = '5887';
-  let editMode = false;
-  let times = [];
-  let players = [];
-  let rodadas = [];
+document.getElementById('sairAdmin').addEventListener('click',()=>{
+  editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden');
+  alert('Modo Edição Desativado');
+});
 
-  // -------------------- Elementos --------------------
-  const corpoTimes=document.getElementById('corpoTimes');
-  const corpoPlayers=document.getElementById('corpoPlayers');
-  const timePlayer=document.getElementById('timePlayer');
-  const placaresTimes=document.getElementById('placaresTimes');
-  const placaresPlayers=document.getElementById('placaresPlayers');
-  const historicoRodadas=document.getElementById('historicoRodadas');
+// -------------------- Funções de render --------------------
+function atualizarTimesOptions(){
+  timePlayer.innerHTML='<option value="">Selecione o time</option>';
+  times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
+}
+function renderTimes(){
+  corpoTimes.innerHTML='';
+  times.forEach((t,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td>${t.points||0}</td><td></td>`;
+    corpoTimes.appendChild(tr);
+  });
+}
+function renderPlayers(){
+  corpoPlayers.innerHTML='';
+  players.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td>${p.kills||0}</td><td></td>`;
+    corpoPlayers.appendChild(tr);
+  });
+}
+function renderPlacares(){
+  placaresTimes.innerHTML='';
+  times.forEach((t,i)=>{
+    placaresTimes.innerHTML+=`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`;
+  });
+  placaresPlayers.innerHTML='';
+  players.forEach((p,i)=>{
+    placaresPlayers.innerHTML+=`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`;
+  });
+}
+function renderHistorico(){
+  historicoRodadas.innerHTML='';
+  if(rodadas.length===0){historicoRodadas.innerHTML='<p class="muted">Nenhuma rodada registrada</p>'; return;}
+  rodadas.forEach(r=>{
+    const div=document.createElement('div');
+    div.innerHTML=`<div class="round-title">Rodada ${r.numero}</div>`;
+    let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
+    r.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
+    let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
+    r.players.forEach(ps=>pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td></tr>`); pTable+='</tbody></table>';
+    div.innerHTML+=tTable+pTable; historicoRodadas.appendChild(div);
+  });
+}
+function renderAll(){renderTimes();renderPlayers();atualizarTimesOptions();renderPlacares();renderHistorico();}
 
-  // -------------------- LocalStorage --------------------
-  function salvar(){localStorage.setItem('campeonatoTimes',JSON.stringify(times));
-                   localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
-                   localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));}
-  function carregar(){
-    times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
-    players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
-    rodadas=JSON.parse(localStorage.getItem('campe
+// -------------------- Adicionar Time --------------------
+document.getElementById('formAddTime').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nome=document.getElementById('nomeTime').value;
+  const pts=+document.getElementById('pontosTime').value;
+  times.push({name:nome,points:pts});
+  localStorage.setItem('campeonatoTimes',JSON.stringify(times));
+  renderAll();
+});
+
+// -------------------- Adicionar Player --------------------
+document.getElementById('formAddPlayer').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nome=document.getElementById('nomePlayer').value;
+  const team=timePlayer.value;
+  const kills=+document.getElementById('killsPlayer').value;
+  if(!team){alert('Selecione um time'); return;}
+  players.push({name:nome,team:team,kills:kills});
+  localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
+  renderAll();
+});
+
+// -------------------- Adicionar Rodada --------------------
+document.getElementById('formRodada').addEventListener('submit',e=>{
+  e.preventDefault();
+  const numero=+document.getElementById('numRodada').value;
+  const timesRodada=times.map((t,i)=>({name:t.name,points:+document.getElementById('placarTime'+i).value}));
+  const playersRodada=players.map((p,i)=>({name:p.name,kills:+document.getElementById('placarPlayer'+i).value}));
+  rodadas.push({numero, times:timesRodada, players:playersRodada});
+  // Atualiza totais
+  times.forEach(t=>{t.points=rodadas.reduce((sum,r)=>sum+(r.times.find(rt=>rt.name===t.name)?.points||0),0)});
+  players.forEach(p=>{p.kills=rodadas.reduce((sum,r)=>sum+(r.players.find(rp=>rp.name===p.name)?.kills||0),0)});
+  localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));
+  localStorage.setItem('campeonatoTimes',JSON.stringify(times));
+  localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
+  renderAll();
+});
+
+// -------------------- Exportar/Importar --------------------
+document.getElementById('exportarJSON').addEventListener('click',()=>{navigator.clipboard.writeText(JSON.stringify({times,players,rodadas},null,2)); alert('JSON copiado');});
+document.getElementById('importarBtn').addEventListener('click',()=>{
+  try{
+    const data=JSON.parse(document.getElementById('importarJSON').value);
+    times=data.times||[]; players=data.players||[]; rodadas=data.rodadas||[];
+    localStorage.setItem('campeonatoTimes',JSON.stringify(times));
+    localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
+    localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));
+    renderAll();
+    alert('Importado com sucesso');
+  }catch(e){alert('Erro no JSON');}
+});
+
+// -------------------- Limpar Tudo --------------------
+document.getElementById('limparTudo').addEventListener('click',()=>{
+  if(confirm('Apagar todos os dados?')){
+    times=[]; players=[]; rodadas=[];
+    localStorage.clear();
+    renderAll();
+  }
+});
+
+// Render inicial
+renderAll();
+</script>
+</body>
+  </html>
