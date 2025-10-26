@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Campeonato FSA CUP - Salas</title>
+<title>Painel Campeonato FSA CUP</title>
 <style>
 :root{
   --bg:#0a0e1a; --card:#0f172a; --accent:#eab308;
@@ -28,19 +28,21 @@ td.silver{color:var(--silver);font-weight:700;}
 td.bronze{color:var(--bronze);font-weight:700;}
 td.mvpWin{color:var(--mvpWin);font-weight:700;}
 td.mvpLose{color:var(--mvpLose);font-weight:700;}
+table tr:hover{background:rgba(255,255,255,0.08);}
 button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
 button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
 button.primary:hover{filter:brightness(1.1);}
 button.danger{background:var(--danger);border:0;}
 input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;width:100%;}
 .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
-.corner-panel{width:450px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s ease;}
+.corner-panel{width:480px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s ease;}
 .hidden{display:none;}
 .muted{color:var(--muted);font-size:13px;}
 .badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
 .match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
 .match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
 .room-title{margin-top:12px;color:var(--accent);font-weight:600;}
+.history-room{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px;background:rgba(255,255,255,0.02);}
 .history-table{margin-top:6px;font-size:13px;width:100%;}
 .history-table th, .history-table td{text-align:center;}
 .search-room{margin-bottom:12px;padding:6px;border-radius:8px;border:1px solid var(--border);width:100%;}
@@ -121,7 +123,7 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </footer>
 
 <script>
-// Dados
+// Dados iniciais
 let editMode=false;
 let times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
 let players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
@@ -141,20 +143,32 @@ const pesquisarSala=document.getElementById('pesquisarSala');
 
 // Abrir/Fechar painel
 document.getElementById('botaoPainel').addEventListener('click',()=>{painelAdmin.classList.toggle('hidden');});
+
 // Autenticação
 document.getElementById('entrarAdmin').addEventListener('click',()=>{
   const senha=document.getElementById('senhaAdmin').value;
-  if(senha==='5887'){editMode=true;loginAdmin.classList.add('hidden');editorAdmin.classList.remove('hidden');renderAll(); alert('Modo Edição Ativo');}
-  else alert('Senha incorreta');
+  if(senha==='5887'){
+    editMode=true;
+    loginAdmin.classList.add('hidden');
+    editorAdmin.classList.remove('hidden');
+    renderAll();
+    alert('Modo Edição Ativo');
+  } else alert('Senha incorreta');
 });
-document.getElementById('sairAdmin').addEventListener('click',()=>{editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden'); alert('Modo Edição Desativado');});
+document.getElementById('sairAdmin').addEventListener('click',()=>{
+  editMode=false;
+  editorAdmin.classList.add('hidden');
+  loginAdmin.classList.remove('hidden');
+  alert('Modo Edição Desativado');
+});
 
-// Funções
+// Atualizar options do select
 function atualizarTimesOptions(){
   timePlayer.innerHTML='<option value="">Selecione o time</option>';
   times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
 }
 
+// Renderizações
 function renderTimes(){
   corpoTimes.innerHTML='';
   times.sort((a,b)=>b.points-a.points);
@@ -177,6 +191,7 @@ function renderPlayers(){
   });
 }
 
+// Renderizar inputs para placares
 function renderPlacares(){
   placaresTimes.innerHTML='';
   times.forEach((t,i)=>placaresTimes.innerHTML+=`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`);
@@ -184,21 +199,106 @@ function renderPlacares(){
   players.forEach((p,i)=>placaresPlayers.innerHTML+=`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`);
 }
 
+// Renderizar histórico de salas
 function renderHistorico(){
   historicoSalas.innerHTML='';
   const filtro=pesquisarSala.value.toLowerCase();
   salas.filter(s=>s.nome.toLowerCase().includes(filtro)).forEach(s=>{
     const div=document.createElement('div');
+    div.className='history-room';
     div.innerHTML=`<div class="room-title">Sala: ${s.nome}</div>`;
-    // Time vencedor
+    // Times
     const maxPoints=Math.max(...s.times.map(t=>t.points));
-    const vencedor=s.times.filter(t=>t.points===maxPoints).map(t=>t.name);
+    const vencedores=s.times.filter(t=>t.points===maxPoints).map(t=>t.name);
     let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
-    s.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
-    let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
+    s.times.forEach(ts=>{tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`});
+    tTable+='</tbody></table>';
+    // Players
+    let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th><th>MVP</th></tr></thead><tbody>';
     s.players.forEach(ps=>{
-      const timeVencedor=vencedor.includes(ps.team);
-      const maxKillsTime=s.players.filter(pl=>pl.team===ps.team).reduce((max,p)=>p.kills>max?p.kills:max,0);
+      const timeVencedor=vencedores.includes(ps.team);
+      const maxKillsTime=Math.max(...s.players.filter(pl=>pl.team===ps.team).map(pl=>pl.kills));
       const isMVP=ps.kills===maxKillsTime;
       let cls='';
-      if(isMVP && timeV
+      if(isMVP && timeVencedor) cls='mvpWin';
+      else if(isMVP && !timeVencedor) cls='mvpLose';
+      pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td><td class="${cls}">${isMVP?'MVP':''}</td></tr>`;
+    });
+    pTable+='</tbody></table>';
+    div.innerHTML+=tTable+pTable;
+    historicoSalas.appendChild(div);
+  });
+}
+
+// Eventos adicionar times
+document.getElementById('formAddTime').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nome=document.getElementById('nomeTime').value.trim();
+  const pontos=+document.getElementById('pontosTime').value;
+  if(nome){times.push({name:nome,points:pontos}); salvarTimes(); renderAll(); atualizarTimesOptions(); renderPlacares();}
+});
+
+// Adicionar player
+document.getElementById('formAddPlayer').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nome=document.getElementById('nomePlayer').value.trim();
+  const time=timePlayer.value;
+  const kills=+document.getElementById('killsPlayer').value;
+  if(nome && time){players.push({name:nome,team:time,kills:kills}); salvarPlayers(); renderAll(); renderPlacares();}
+});
+
+// Adicionar sala
+document.getElementById('formSala').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nomeSala=document.getElementById('nomeSala').value.trim();
+  if(!nomeSala) return;
+  const salaTimes=times.map((t,i)=>({name:t.name,points:+document.getElementById('placarTime'+i).value}));
+  const salaPlayers=players.map((p,i)=>({name:p.name,team:p.team,kills:+document.getElementById('placarPlayer'+i).value}));
+  salas.push({nome:nomeSala,times:salaTimes,players:salaPlayers});
+  salvarSalas(); renderHistorico(); renderAll();
+});
+
+// Exportar JSON
+document.getElementById('exportarJSON').addEventListener('click',()=>{
+  const data={times,players,salas};
+  const json=JSON.stringify(data,null,2);
+  prompt('Copie o JSON abaixo:',json);
+});
+
+// Importar JSON
+document.getElementById('importarBtn').addEventListener('click',()=>{
+  try{
+    const data=JSON.parse(document.getElementById('importarJSON').value);
+    times=data.times||[]; players=data.players||[]; salas=data.salas||[];
+    salvarTimes(); salvarPlayers(); salvarSalas();
+    renderAll(); atualizarTimesOptions(); renderPlacares();
+  }catch(e){alert('JSON inválido')}
+});
+
+// Limpar tudo
+document.getElementById('limparTudo').addEventListener('click',()=>{
+  if(confirm('Deseja apagar todos os dados?')){
+    times=[]; players=[]; salas=[];
+    salvarTimes(); salvarPlayers(); salvarSalas();
+    renderAll(); atualizarTimesOptions(); renderPlacares();
+  }
+});
+
+// Salvar
+function salvarTimes(){localStorage.setItem('campeonatoTimes',JSON.stringify(times))}
+function salvarPlayers(){localStorage.setItem('campeonatoPlayers',JSON.stringify(players))}
+function salvarSalas(){localStorage.setItem('campeonatoSalas',JSON.stringify(salas))}
+
+// Atualizar tudo
+function renderAll(){renderTimes(); renderPlayers(); renderHistorico();}
+
+// Filtro de salas
+pesquisarSala.addEventListener('input',renderHistorico);
+
+// Inicial
+atualizarTimesOptions();
+renderPlacares();
+renderAll();
+</script>
+</body>
+  </html>
