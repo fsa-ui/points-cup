@@ -180,64 +180,50 @@ function atualizarTimesOptions(){
 function renderAll(){
   renderTimes();
   renderPlayers();
-  renderHistorico();
-  atualizarTimesOptions();
-  renderPlacares();
-}
-
 function renderTimes(){
   corpoTimes.innerHTML = '';
-  // evitar mutação direta no sort original por referência
   const timesSorted = [...times].sort((a,b)=> (b.points||0) - (a.points||0));
   timesSorted.forEach((t,i) => {
     const cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     const idx = times.findIndex(x=>x.name===t.name);
+
+    // Mostra botões apenas se o admin estiver logado
+    const botoes = editMode 
+      ? `<button onclick="editarTime(${idx})">✏️</button>
+         <button onclick="excluirTime(${idx})" class="danger">🗑️</button>`
+      : '';
+
     corpoTimes.innerHTML += `<tr>
-      <td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td>
-      <td>
-        <button onclick="editarTime(${idx})">✏️</button>
-        <button onclick="excluirTime(${idx})" class="danger">🗑️</button>
-      </td>
+      <td>${i+1}</td>
+      <td>${t.name}</td>
+      <td class="${cls}">${t.points||0}</td>
+      <td>${botoes}</td>
     </tr>`;
   });
 }
 
-window.editarTime = (i) => {
-  if (i < 0 || i >= times.length) return;
-  const novoNome = prompt('Novo nome do time:', times[i].name);
-  if (novoNome) times[i].name = novoNome;
-  const novosPontos = prompt('Novos pontos:', times[i].points);
-  if (!isNaN(novosPontos) && novosPontos !== null && novosPontos !== '') times[i].points = +novosPontos;
-  salvarTimes(); atualizarTimesOptions(); renderAll();
-};
-
-window.excluirTime = (i) => {
-  if (i < 0 || i >= times.length) return;
-  if (confirm('Deseja realmente excluir este time?')) {
-    const nome = times[i].name;
-    times.splice(i,1);
-    // remover ou atualizar players do time removido
-    players = players.filter(p => p.team !== nome);
-    salvarTimes(); salvarPlayers(); atualizarTimesOptions(); renderAll();
-  }
-};
-
-// Players
 function renderPlayers(){
   corpoPlayers.innerHTML = '';
   const playersSorted = [...players].sort((a,b)=> (b.kills||0) - (a.kills||0));
   playersSorted.forEach((p,i) => {
     const cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     const idx = players.findIndex(x=>x.name===p.name && x.team===p.team);
+
+    // Mostra botões apenas se o admin estiver logado
+    const botoes = editMode
+      ? `<button onclick="editarPlayer(${idx})">✏️</button>
+         <button onclick="excluirPlayer(${idx})" class="danger">🗑️</button>`
+      : '';
+
     corpoPlayers.innerHTML += `<tr>
-      <td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td>
-      <td>
-        <button onclick="editarPlayer(${idx})">✏️</button>
-        <button onclick="excluirPlayer(${idx})" class="danger">🗑️</button>
-      </td>
+      <td>${i+1}</td>
+      <td>${p.name}</td>
+      <td>${p.team}</td>
+      <td class="${cls}">${p.kills||0}</td>
+      <td>${botoes}</td>
     </tr>`;
   });
-}
+  }
 
 window.editarPlayer = (i) => {
   if (i < 0 || i >= players.length) return;
