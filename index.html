@@ -177,7 +177,7 @@ if (times.length === 0) {
         { name: "Time Beta", points: 120 },
         { name: "Time Gamma", points: 90 }
     ];
-    salvarTimes();
+    localStorage.setItem('campeonatoTimes', JSON.stringify(times));
 }
 
 if (players.length === 0) {
@@ -186,7 +186,7 @@ if (players.length === 0) {
         { name: "Player2", team: "Time Beta", kills: 20 },
         { name: "Player3", team: "Time Gamma", kills: 18 }
     ];
-    salvarPlayers();
+    localStorage.setItem('campeonatoPlayers', JSON.stringify(players));
 }
 
 // Elementos DOM
@@ -201,33 +201,45 @@ const editorAdmin = document.getElementById('editorAdmin');
 const loginAdmin = document.getElementById('loginAdmin');
 const pesquisarSala = document.getElementById('pesquisarSala');
 
-// Sistema de toggle entre seções
-document.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const targetSection = btn.dataset.section;
-        
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        document.querySelectorAll('.section-content').forEach(section => {
-            section.classList.add('hidden');
+// SISTEMA DE TOGGLE CORRIGIDO
+function setupToggleButtons() {
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            
+            // Remove active de todos os botões
+            toggleButtons.forEach(b => b.classList.remove('active'));
+            // Adiciona active no botão clicado
+            this.classList.add('active');
+            
+            // Esconde todas as seções
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Mostra a seção alvo
+            const targetElement = document.getElementById(`section-${targetSection}`);
+            if (targetElement) {
+                targetElement.classList.remove('hidden');
+                
+                // Renderiza a seção se necessário
+                if (targetSection === 'historico') {
+                    renderHistorico();
+                }
+            }
         });
-        
-        document.getElementById(`section-${targetSection}`).classList.remove('hidden');
-        
-        if (targetSection === 'historico') {
-            renderHistorico();
-        }
     });
-});
+}
 
-// Abrir/Fechar painel
-document.getElementById('botaoPainel').addEventListener('click', () => { 
-    painelAdmin.classList.toggle('hidden'); 
+// Abrir/Fechar painel administrativo
+document.getElementById('botaoPainel').addEventListener('click', function() {
+    painelAdmin.classList.toggle('hidden');
 });
 
 // Autenticação
-document.getElementById('entrarAdmin').addEventListener('click', () => {
+document.getElementById('entrarAdmin').addEventListener('click', function() {
     const senha = document.getElementById('senhaAdmin').value;
     if (senha === '5887') {
         editMode = true;
@@ -240,7 +252,7 @@ document.getElementById('entrarAdmin').addEventListener('click', () => {
     }
 });
 
-document.getElementById('sairAdmin').addEventListener('click', () => {
+document.getElementById('sairAdmin').addEventListener('click', function() {
     editMode = false;
     editorAdmin.classList.add('hidden');
     loginAdmin.classList.remove('hidden');
@@ -248,20 +260,17 @@ document.getElementById('sairAdmin').addEventListener('click', () => {
     alert('Modo Edição Desativado');
 });
 
-// Funções para salvar dados - AS EDIÇÕES FICAM SALVAS AQUI
+// Funções para salvar dados
 function salvarTimes() { 
     localStorage.setItem('campeonatoTimes', JSON.stringify(times)); 
-    console.log('Times salvos:', times);
 }
 
 function salvarPlayers() { 
     localStorage.setItem('campeonatoPlayers', JSON.stringify(players)); 
-    console.log('Players salvos:', players);
 }
 
 function salvarSalas() { 
     localStorage.setItem('campeonatoSalas', JSON.stringify(salas)); 
-    console.log('Salas salvas:', salas);
 }
 
 // Atualizar options do select
@@ -282,6 +291,8 @@ function renderAll(){
 }
 
 function renderTimes(){
+    if (!corpoTimes) return;
+    
     corpoTimes.innerHTML = '';
     const timesSorted = [...times].sort((a,b) => (b.points||0) - (a.points||0));
     
@@ -305,7 +316,7 @@ function renderTimes(){
     });
 }
 
-window.editarTime = (i) => {
+window.editarTime = function(i) {
     if (i < 0 || i >= times.length) return;
     const novoNome = prompt('Novo nome do time:', times[i].name);
     if (novoNome) times[i].name = novoNome;
@@ -318,7 +329,7 @@ window.editarTime = (i) => {
     renderAll();
 };
 
-window.excluirTime = (i) => {
+window.excluirTime = function(i) {
     if (i < 0 || i >= times.length) return;
     if (confirm('Deseja realmente excluir este time?')) {
         const nome = times[i].name;
@@ -333,6 +344,8 @@ window.excluirTime = (i) => {
 
 // Players
 function renderPlayers(){
+    if (!corpoPlayers) return;
+    
     corpoPlayers.innerHTML = '';
     const playersSorted = [...players].sort((a,b) => (b.kills||0) - (a.kills||0));
     
@@ -357,7 +370,7 @@ function renderPlayers(){
     });
 }
 
-window.editarPlayer = (i) => {
+window.editarPlayer = function(i) {
     if (i < 0 || i >= players.length) return;
     const novoNome = prompt('Novo nome do player:', players[i].name);
     if (novoNome) players[i].name = novoNome;
@@ -371,7 +384,7 @@ window.editarPlayer = (i) => {
     renderAll();
 };
 
-window.excluirPlayer = (i) => {
+window.excluirPlayer = function(i) {
     if (i < 0 || i >= players.length) return;
     if (confirm('Deseja realmente excluir este player?')) {
         players.splice(i, 1);
@@ -382,6 +395,8 @@ window.excluirPlayer = (i) => {
 
 // Placares
 function renderPlacares(){
+    if (!placaresTimes || !placaresPlayers) return;
+    
     placaresTimes.innerHTML = times.map((t, i) => 
         `<div class="match-container">
             <label>${t.name}</label>
@@ -399,8 +414,10 @@ function renderPlacares(){
 
 // Histórico
 function renderHistorico(){
+    if (!historicoSalas) return;
+    
     historicoSalas.innerHTML = '';
-    const filtro = pesquisarSala.value.toLowerCase();
+    const filtro = pesquisarSala ? pesquisarSala.value.toLowerCase() : '';
     
     salas.filter(s => s.nome.toLowerCase().includes(filtro)).forEach(s => {
         const div = document.createElement('div');
@@ -434,10 +451,8 @@ function renderHistorico(){
     });
 }
 
-pesquisarSala.addEventListener('input', renderHistorico);
-
-// Formulários - AS EDIÇÕES SÃO SALVAS E FICAM VISÍVEIS PARA TODOS
-document.getElementById('formAddTime').addEventListener('submit', e => {
+// Event Listeners para formulários
+document.getElementById('formAddTime').addEventListener('submit', function(e) {
     e.preventDefault();
     const nome = document.getElementById('nomeTime').value.trim();
     const pontos = +document.getElementById('pontosTime').value || 0;
@@ -458,7 +473,7 @@ document.getElementById('formAddTime').addEventListener('submit', e => {
     alert('Time adicionado! Todos os usuários verão esta atualização.');
 });
 
-document.getElementById('formAddPlayer').addEventListener('submit', e => {
+document.getElementById('formAddPlayer').addEventListener('submit', function(e) {
     e.preventDefault();
     const nome = document.getElementById('nomePlayer').value.trim();
     const team = timePlayer.value;
@@ -479,7 +494,7 @@ document.getElementById('formAddPlayer').addEventListener('submit', e => {
     alert('Player adicionado! Todos os usuários verão esta atualização.');
 });
 
-document.getElementById('formSala').addEventListener('submit', e => {
+document.getElementById('formSala').addEventListener('submit', function(e) {
     e.preventDefault();
     const nomeSala = document.getElementById('nomeSala').value.trim();
     if (!nomeSala) return;
@@ -524,23 +539,4 @@ document.getElementById('formSala').addEventListener('submit', e => {
     renderAll();
     e.target.reset();
     
-    alert('Sala adicionada! Todos os usuários verão esta atualização.');
-});
-
-// Exportar/Importar
-document.getElementById('exportarJSON').addEventListener('click', () => {
-    const data = {
-        times,
-        players,
-        salas,
-        exportedAt: new Date().toISOString()
-    };
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fsa_cup_backup.json';
-    document.body.appendChild(a);
-    a.click();
-    document.bo
+    alert('Sala adicionada
