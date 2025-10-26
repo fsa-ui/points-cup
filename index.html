@@ -1,48 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FSA CUP - Painel Oficial de Pontuação</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Campeonato FSA CUP</title>
   <style>
     :root{
-      --bg:#0a0e1a;
-      --card:#0f172a;
-      --accent:#eab308;
-      --muted:#9aa4b2;
-      --danger:#ef4444;
-      --border:rgba(255,255,255,0.08);
+      --bg: #0a0e1a;
+      --card: #0f172a;
+      --accent: #eab308;
+      --muted: #9aa4b2;
+      --danger: #ef4444;
+      --border: rgba(255,255,255,0.08);
     }
-    *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff}
-    body{margin:0;background:radial-gradient(circle at top,#11192c,#070b14 60%);padding:0;min-height:100vh;}
+    *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
+    body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
     header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
-    header h1{font-size:28px;font-weight:700;color:var(--accent);letter-spacing:2px;}
+    header h1{color:var(--accent);letter-spacing:2px;}
     .container{max-width:1200px;margin:30px auto;padding:0 20px;}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.5);padding:20px;margin-bottom:24px;}
-    h2{margin:0 0 16px;font-size:20px;color:var(--accent);text-transform:uppercase;}
+    .card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:24px;box-shadow:0 8px 20px rgba(0,0,0,0.5);}
+    h2{color:var(--accent);margin-bottom:16px;text-transform:uppercase;}
     table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-    th,td{padding:10px;text-align:left;}
-    th{color:var(--muted);font-size:13px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+    th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
+    th{color:var(--muted);font-size:13px;text-transform:uppercase;}
     td{font-weight:600;}
     tr:nth-child(even){background:rgba(255,255,255,0.02);}
-    .score{font-size:18px;cursor:pointer;}
-    .editCol button{margin-right:6px;}
+    .score{cursor:pointer;color:var(--accent);}
     button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
-    button.primary{background:var(--accent);color:#000;border:0;font-weight:600;}
+    button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
     button.primary:hover{filter:brightness(1.1);}
     button.danger{background:var(--danger);border:0;}
-    input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;}
-    footer{padding:20px 0;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--border);}
+    input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:#fff;width:100%;}
     .editor-corner{position:fixed;right:18px;bottom:18px;z-index:999;}
     .corner-panel{width:450px;max-width:calc(100% - 40px);background:var(--card);border-radius:16px;border:1px solid var(--border);padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s ease;}
     .hidden{display:none;}
     .muted{color:var(--muted);font-size:13px;}
     .badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
-    .accent-text{color:var(--accent);font-weight:600;}
     .match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
     .match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
     .round-title{margin-top:12px;color:var(--accent);font-weight:600;}
-    .history-table{margin-top:6px;font-size:13px;}
+    .history-table{margin-top:6px;font-size:13px;width:100%;}
+    footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
   </style>
 </head>
 <body>
@@ -52,316 +50,107 @@
   </header>
 
   <div class="container">
+    <!-- Ranking Times -->
     <section class="card">
       <h2>Ranking de Times</h2>
-      <table id="scoreTable">
+      <table id="tabelaTimes">
         <thead>
-          <tr><th>#</th><th>Time</th><th>Pontos</th><th class="editCol">Ações</th></tr>
+          <tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr>
         </thead>
-        <tbody id="tbodyTeams"></tbody>
+        <tbody id="corpoTimes"></tbody>
       </table>
     </section>
 
+    <!-- Ranking Players -->
     <section class="card">
       <h2>Ranking de Players</h2>
-      <table id="playersTable">
+      <table id="tabelaPlayers">
         <thead>
-          <tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th class="editCol">Ações</th></tr>
+          <tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr>
         </thead>
-        <tbody id="tbodyPlayers"></tbody>
+        <tbody id="corpoPlayers"></tbody>
       </table>
     </section>
 
+    <!-- Histórico de Rodadas -->
     <section class="card">
       <h2>Histórico de Rodadas</h2>
-      <div id="matchesHistory"></div>
+      <div id="historicoRodadas"></div>
     </section>
   </div>
 
-  <!-- 🔧 Painel de administrador escondido -->
+  <!-- Painel Admin -->
   <div class="editor-corner">
-    <button id="togglePanelBtn" style="
-      background:var(--accent);
-      border:none;
-      color:#000;
-      border-radius:50%;
-      width:50px;
-      height:50px;
-      font-size:22px;
-      font-weight:700;
-      cursor:pointer;
-      box-shadow:0 4px 12px rgba(0,0,0,0.5);
-    ">⚙️</button>
-
-    <div id="cornerPanel" class="corner-panel hidden">
-      <div id="loginBox">
+    <button id="botaoPainel" style="background:var(--accent);border:none;color:#000;border-radius:50%;width:50px;height:50px;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);">⚙️</button>
+    <div id="painelAdmin" class="corner-panel hidden">
+      <div id="loginAdmin">
         <div class="muted">Acesso restrito ao administrador</div>
-        <input id="inputPwd" type="password" placeholder="Senha" style="width:100%;margin-top:8px" />
+        <input type="password" id="senhaAdmin" placeholder="Senha" style="margin-top:8px"/>
         <div style="margin-top:10px;text-align:right">
-          <button id="btnSubmitPwd" class="primary">Entrar</button>
+          <button id="entrarAdmin" class="primary">Entrar</button>
         </div>
       </div>
-
-      <div id="editorBox" class="hidden">
+      <div id="editorAdmin" class="hidden">
         <div class="muted">Modo Edição Ativo</div>
-        <hr style="border:0;border-top:1px solid var(--border);margin:10px 0"/>
+        <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;"/>
 
-        <!-- Adicionar Time -->
-        <form id="addTeamForm" style="margin-bottom:10px">
-          <input id="teamName" placeholder="Nome do time" required />
-          <input id="teamScore" type="number" value="0" required style="width:80px" />
-          <button class="primary" type="submit">Adicionar Time</button>
+        <!-- Form Times -->
+        <form id="formAddTime" style="margin-bottom:10px;">
+          <input id="nomeTime" placeholder="Nome do Time" required/>
+          <input id="pontosTime" type="number" value="0" required style="margin-top:6px;"/>
+          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Time</button>
         </form>
 
-        <!-- Adicionar Player -->
-        <form id="addPlayerForm" style="margin-bottom:10px">
-          <input id="playerName" placeholder="Nome do player" required />
-          <select id="playerTeam"></select>
-          <input id="playerKills" type="number" value="0" style="width:70px" required />
-          <button class="primary" type="submit">Adicionar Player</button>
+        <!-- Form Players -->
+        <form id="formAddPlayer" style="margin-bottom:10px;">
+          <input id="nomePlayer" placeholder="Nome do Player" required/>
+          <select id="timePlayer"></select>
+          <input id="killsPlayer" type="number" value="0" required style="margin-top:6px;"/>
+          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Player</button>
         </form>
 
-        <!-- Adicionar Rodada -->
-        <section style="margin-bottom:10px">
-          <h2>Nova Rodada</h2>
-          <form id="addMatchForm">
-            <input type="number" id="matchRound" placeholder="Número da rodada" required style="width:100%;margin-bottom:8px"/>
-            <div id="teamScoresContainer"></div>
-            <div id="playerScoresContainer" style="margin-top:6px"></div>
-            <button type="submit" class="primary" style="margin-top:6px">Adicionar Rodada</button>
-          </form>
-        </section>
+        <!-- Form Rodadas -->
+        <form id="formRodada" style="margin-bottom:10px;">
+          <input id="numRodada" type="number" placeholder="Número da Rodada" required style="margin-bottom:6px;"/>
+          <div id="placaresTimes"></div>
+          <div id="placaresPlayers" style="margin-top:6px;"></div>
+          <button type="submit" class="primary" style="margin-top:6px;">Adicionar Rodada</button>
+        </form>
 
-        <button id="btnExport" style="margin-top:8px">Exportar JSON</button>
-        <input id="importArea" placeholder='Cole JSON aqui' style="width:100%;margin-top:6px" />
-        <button id="btnImport">Importar</button>
-        <button id="btnClear" class="danger" style="margin-top:8px">Apagar Tudo</button>
-        <button id="btnLogout" style="margin-top:8px">Sair</button>
+        <button id="exportarJSON" style="margin-top:6px;">Exportar JSON</button>
+        <input id="importarJSON" placeholder="Cole JSON aqui" style="margin-top:6px;"/>
+        <button id="importarBtn">Importar</button>
+        <button id="limparTudo" class="danger" style="margin-top:6px;">Apagar Tudo</button>
+        <button id="sairAdmin" style="margin-top:6px;">Sair</button>
       </div>
     </div>
   </div>
 
   <footer>
-    © 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para uso administrativo seguro.
+    © 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para campeonatos.
   </footer>
 
   <script>
-  const EDIT_PASSWORD = '5887';
-  const STORAGE_TEAMS = 'fsa_teams';
-  const STORAGE_PLAYERS = 'fsa_players';
-  const STORAGE_MATCHES = 'fsa_matches';
-  const STORAGE_AUTH = 'fsa_auth';
-
+  // -------------------- Configurações --------------------
+  const SENHA = '5887';
   let editMode = false;
-  let teams = [];
+  let times = [];
   let players = [];
-  let matches = [];
+  let rodadas = [];
 
-  const tbodyTeams=document.getElementById('tbodyTeams');
-  const tbodyPlayers=document.getElementById('tbodyPlayers');
-  const loginBox=document.getElementById('loginBox');
-  const editorBox=document.getElementById('editorBox');
-  const inputPwd=document.getElementById('inputPwd');
-  const addTeamForm=document.getElementById('addTeamForm');
-  const addPlayerForm=document.getElementById('addPlayerForm');
-  const teamName=document.getElementById('teamName');
-  const teamScore=document.getElementById('teamScore');
-  const playerName=document.getElementById('playerName');
-  const playerTeam=document.getElementById('playerTeam');
-  const playerKills=document.getElementById('playerKills');
-  const btnSubmitPwd=document.getElementById('btnSubmitPwd');
-  const btnExport=document.getElementById('btnExport');
-  const btnImport=document.getElementById('btnImport');
-  const btnClear=document.getElementById('btnClear');
-  const btnLogout=document.getElementById('btnLogout');
-  const importArea=document.getElementById('importArea');
-  const togglePanelBtn=document.getElementById('togglePanelBtn');
-  const cornerPanel=document.getElementById('cornerPanel');
-  const addMatchForm=document.getElementById('addMatchForm');
-  const matchRound=document.getElementById('matchRound');
-  const teamScoresContainer=document.getElementById('teamScoresContainer');
-  const playerScoresContainer=document.getElementById('playerScoresContainer');
-  const matchesHistory=document.getElementById('matchesHistory');
-
-  loadAll();
-  initAuth();
-  renderAll();
-  updateUI();
-
-  // -------------------- Autenticação --------------------
-  btnSubmitPwd.onclick=()=>{
-    if(inputPwd.value===EDIT_PASSWORD){
-      editMode=true;
-      saveAuth();
-      updateUI();
-      alert('Edição liberada');
-    } else alert('Senha incorreta');
-  };
-
-  btnLogout.onclick=()=>{
-    editMode=false;saveAuth();updateUI();
-    alert('Modo edição desativado');
-  };
-
-  togglePanelBtn.addEventListener('click',()=>{cornerPanel.classList.toggle('hidden');});
-
-  // -------------------- CRUD Times --------------------
-  addTeamForm.onsubmit=e=>{
-    e.preventDefault();
-    if(!editMode)return;
-    teams.push({name:teamName.value,score:+teamScore.value});
-    saveAll();renderAll();updatePlayerOptions();
-    teamName.value='';teamScore.value='0';
-  };
-
-  addPlayerForm.onsubmit=e=>{
-    e.preventDefault();
-    if(!editMode)return;
-    players.push({name:playerName.value,team:playerTeam.value,kills:+playerKills.value});
-    saveAll();renderAll();
-    playerName.value='';playerKills.value='0';
-  };
-
-  // -------------------- Rodadas --------------------
-  addMatchForm.onsubmit=e=>{
-    e.preventDefault();
-    if(!editMode) return;
-    const roundNum = +matchRound.value;
-    if(roundNum<1){alert('Rodada inválida');return;}
-
-    const teamScores = teams.map((t,i)=>{
-      const val = +document.getElementById('teamScore_'+i).value || 0;
-      return {team: t.name, score: val};
-    });
-
-    const playerScores = players.map((p,i)=>{
-      const val = +document.getElementById('playerScore_'+i).value || 0;
-      return {player: p.name, kills: val};
-    });
-
-    matches.push({round: roundNum, teamScores, playerScores});
-    saveAll();
-    calculateTotals();
-    renderAll();
-    matchRound.value='';
-  };
-
-  // -------------------- Export/Import --------------------
-  btnExport.onclick=()=>{
-    const data=JSON.stringify({teams,players,matches},null,2);
-    navigator.clipboard.writeText(data);
-    alert('Copiado JSON para área de transferência');
-  };
-
-  btnImport.onclick=()=>{
-    if(!editMode)return;
-    try{
-      const data=JSON.parse(importArea.value);
-      teams=data.teams||[];
-      players=data.players||[];
-      matches=data.matches||[];
-      saveAll();renderAll();updatePlayerOptions();
-      alert('Importado com sucesso');
-    }catch(e){alert('Erro ao importar');}
-  };
-
-  btnClear.onclick=()=>{
-    if(!editMode)return;
-    if(confirm('Apagar tudo?')){
-      teams=[];players=[];matches=[];
-      saveAll();renderAll();updatePlayerOptions();
-    }
-  };
-
-  // -------------------- Render Tabelas --------------------
-  function renderAll(){
-    calculateTotals();
-    renderTeams();
-    renderPlayers();
-    renderMatchInputs();
-    renderMatchHistory();
-  }
-
-  function renderTeams(){
-    tbodyTeams.innerHTML='';
-    teams.sort((a,b)=>b.score-a.score);
-    teams.forEach((t,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td class='score'>${t.score}</td><td class='editCol'>${editMode?`<button onclick='editTeam(${i})'>Editar</button><button onclick='delTeam(${i})'>Excluir</button>`:''}</td>`;
-      tbodyTeams.appendChild(tr);
-    });
-  }
-
-  function renderPlayers(){
-    tbodyPlayers.innerHTML='';
-    players.sort((a,b)=>b.kills-a.kills);
-    players.forEach((p,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class='score'>${p.kills}</td><td class='editCol'>${editMode?`<button onclick='editPlayer(${i})'>Editar</button><button onclick='delPlayer(${i})'>Excluir</button>`:''}</td>`;
-      tbodyPlayers.appendChild(tr);
-    });
-  }
-
-  // -------------------- Inputs Rodadas --------------------
-  function renderMatchInputs(){
-    teamScoresContainer.innerHTML='<strong>Pontuação dos Times</strong>';
-    teams.forEach((t,i)=>{
-      const div = document.createElement('div'); div.className='match-container';
-      div.innerHTML=`<label>${t.name}</label><input type="number" id="teamScore_${i}" value="0" style="width:80px"/>`;
-      teamScoresContainer.appendChild(div);
-    });
-
-    playerScoresContainer.innerHTML='<strong>Kills dos Players</strong>';
-    players.forEach((p,i)=>{
-      const div = document.createElement('div'); div.className='match-container';
-      div.innerHTML=`<label>${p.name}</label><input type="number" id="playerScore_${i}" value="0" style="width:70px"/>`;
-      playerScoresContainer.appendChild(div);
-    });
-  }
-
-  // -------------------- Histórico Rodadas --------------------
-  function renderMatchHistory(){
-    matchesHistory.innerHTML='';
-    if(matches.length===0){matchesHistory.innerHTML='<p class="muted">Nenhuma rodada registrada</p>'; return;}
-    matches.forEach(m=>{
-      const div=document.createElement('div');
-      div.innerHTML=`<div class="round-title">Rodada ${m.round}</div>`;
-      let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
-      m.teamScores.forEach(ts=>tTable+=`<tr><td>${ts.team}</td><td>${ts.score}</td></tr>`);
-      tTable+='</tbody></table>';
-
-      let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
-      m.playerScores.forEach(ps=>pTable+=`<tr><td>${ps.player}</td><td>${ps.kills}</td></tr>`);
-      pTable+='</tbody></table>';
-
-      div.innerHTML+=tTable+pTable;
-      matchesHistory.appendChild(div);
-    });
-  }
-
-  // -------------------- Edit/Delete --------------------
-  function editTeam(i){const t=teams[i];teamName.value=t.name;teamScore.value=t.score;teams.splice(i,1);}
-  function editPlayer(i){const p=players[i];playerName.value=p.name;playerTeam.value=p.team;playerKills.value=p.kills;players.splice(i,1);}
-  function delTeam(i){if(confirm('Excluir time '+teams[i].name+'?')){const rem=teams.splice(i,1)[0];players=players.map(p=>p.team===rem.name?{...p,team:''}:p);saveAll();renderAll();updatePlayerOptions();}}
-  function delPlayer(i){if(confirm('Excluir player '+players[i].name+'?')){players.splice(i,1);saveAll();renderAll();}}
-
-  // -------------------- Cálculo Total --------------------
-  function calculateTotals(){
-    teams.forEach(team => {
-      team.score = matches.reduce((sum, m) => {
-        const t = m.teamScores.find(ts => ts.team === team.name);
-        return sum + (t ? t.score : 0);
-      }, 0);
-    });
-
-    players.forEach(player => {
-      player.kills = matches.reduce((sum, m) => {
-        const p = m.playerScores.find(ps => ps.player === player.name);
-        return sum + (p ? p.kills : 0);
-      }, 0);
-    });
-  }
+  // -------------------- Elementos --------------------
+  const corpoTimes=document.getElementById('corpoTimes');
+  const corpoPlayers=document.getElementById('corpoPlayers');
+  const timePlayer=document.getElementById('timePlayer');
+  const placaresTimes=document.getElementById('placaresTimes');
+  const placaresPlayers=document.getElementById('placaresPlayers');
+  const historicoRodadas=document.getElementById('historicoRodadas');
 
   // -------------------- LocalStorage --------------------
-  function loadAll(){
-    teams=JSON.parse(localStorage.getItem
+  function salvar(){localStorage.setItem('campeonatoTimes',JSON.stringify(times));
+                   localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
+                   localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));}
+  function carregar(){
+    times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
+    players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
+    rodadas=JSON.parse(localStorage.getItem('campe
