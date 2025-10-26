@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Campeonato FSA CUP</title>
+<title>Painel Campeonato FSA CUP - Salas</title>
 <style>
 :root{
   --bg:#0a0e1a; --card:#0f172a; --accent:#eab308;
   --muted:#9aa4b2; --danger:#ef4444; --border:rgba(255,255,255,0.08);
+  --gold:#ffd700; --silver:#c0c0c0; --bronze:#cd7f32;
 }
 *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
 body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
@@ -19,9 +20,12 @@ h2{color:var(--accent);margin-bottom:16px;text-transform:uppercase;}
 table{width:100%;border-collapse:collapse;margin-bottom:12px;}
 th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
 th{color:var(--muted);font-size:13px;text-transform:uppercase;}
-td{font-weight:600;}
+td{font-weight:600;transition:0.3s;}
 tr:nth-child(even){background:rgba(255,255,255,0.02);}
-.score{cursor:pointer;color:var(--accent);}
+td.gold{color:var(--gold);font-weight:700;}
+td.silver{color:var(--silver);font-weight:700;}
+td.bronze{color:var(--bronze);font-weight:700;}
+td.highscore{color:#4ade80;font-weight:700;}
 button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
 button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
 button.primary:hover{filter:brightness(1.1);}
@@ -34,8 +38,9 @@ input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);bo
 .badge{background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:999px;font-size:13px;}
 .match-container{margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:10px;}
 .match-container label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted);}
-.round-title{margin-top:12px;color:var(--accent);font-weight:600;}
+.room-title{margin-top:12px;color:var(--accent);font-weight:600;}
 .history-table{margin-top:6px;font-size:13px;width:100%;}
+.history-table th, .history-table td{text-align:center;}
 footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
 </style>
 </head>
@@ -63,8 +68,8 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </section>
 
 <section class="card">
-<h2>Histórico de Rodadas</h2>
-<div id="historicoRodadas"></div>
+<h2>Histórico de Salas</h2>
+<div id="historicoSalas"></div>
 </section>
 </div>
 
@@ -92,11 +97,11 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 <input id="killsPlayer" type="number" value="0" required style="margin-top:6px;"/>
 <button type="submit" class="primary" style="margin-top:6px;">Adicionar Player</button>
 </form>
-<form id="formRodada" style="margin-bottom:10px;">
-<input id="numRodada" type="number" placeholder="Número da Rodada" required style="margin-bottom:6px;"/>
+<form id="formSala" style="margin-bottom:10px;">
+<input id="nomeSala" type="text" placeholder="Nome da Sala" required style="margin-bottom:6px;"/>
 <div id="placaresTimes"></div>
 <div id="placaresPlayers" style="margin-top:6px;"></div>
-<button type="submit" class="primary" style="margin-top:6px;">Adicionar Rodada</button>
+<button type="submit" class="primary" style="margin-top:6px;">Adicionar Sala</button>
 </form>
 <button id="exportarJSON" style="margin-top:6px;">Exportar JSON</button>
 <input id="importarJSON" placeholder="Cole JSON aqui" style="margin-top:6px;"/>
@@ -108,153 +113,99 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </div>
 
 <footer>
-© 2025 FSA CUP — Sistema de Pontuação Oficial | Desenvolvido para campeonatos.
+© 2025 FSA CUP — Sistema de Pontuação Oficial | Campeonatos por sala.
 </footer>
 
 <script>
-// -------------------- Dados --------------------
+// Dados
 let editMode=false;
 let times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
 let players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
-let rodadas=JSON.parse(localStorage.getItem('campeonatoRodadas')||'[]');
+let salas=JSON.parse(localStorage.getItem('campeonatoSalas')||'[]');
 
-// -------------------- Elementos --------------------
+// Elementos
 const corpoTimes=document.getElementById('corpoTimes');
 const corpoPlayers=document.getElementById('corpoPlayers');
 const timePlayer=document.getElementById('timePlayer');
 const placaresTimes=document.getElementById('placaresTimes');
 const placaresPlayers=document.getElementById('placaresPlayers');
-const historicoRodadas=document.getElementById('historicoRodadas');
+const historicoSalas=document.getElementById('historicoSalas');
 const painelAdmin=document.getElementById('painelAdmin');
 const editorAdmin=document.getElementById('editorAdmin');
 const loginAdmin=document.getElementById('loginAdmin');
 
-// -------------------- Abrir/Fechar painel --------------------
-document.getElementById('botaoPainel').addEventListener('click',()=>{
-  painelAdmin.classList.toggle('hidden');
-});
+// Abrir/Fechar painel
+document.getElementById('botaoPainel').addEventListener('click',()=>{painelAdmin.classList.toggle('hidden');});
 
-// -------------------- Autenticação --------------------
+// Autenticação
 document.getElementById('entrarAdmin').addEventListener('click',()=>{
   const senha=document.getElementById('senhaAdmin').value;
   if(senha==='5887'){editMode=true;loginAdmin.classList.add('hidden');editorAdmin.classList.remove('hidden');renderAll(); alert('Modo Edição Ativo');}
   else alert('Senha incorreta');
 });
+document.getElementById('sairAdmin').addEventListener('click',()=>{editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden'); alert('Modo Edição Desativado');});
 
-document.getElementById('sairAdmin').addEventListener('click',()=>{
-  editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden');
-  alert('Modo Edição Desativado');
-});
-
-// -------------------- Funções de render --------------------
+// Funções
 function atualizarTimesOptions(){
   timePlayer.innerHTML='<option value="">Selecione o time</option>';
   times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
 }
 function renderTimes(){
   corpoTimes.innerHTML='';
+  times.sort((a,b)=>b.points-a.points);
   times.forEach((t,i)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td>${t.points||0}</td><td></td>`;
+    let cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td><td></td>`;
     corpoTimes.appendChild(tr);
   });
 }
 function renderPlayers(){
   corpoPlayers.innerHTML='';
+  players.sort((a,b)=>b.kills-a.kills);
   players.forEach((p,i)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td>${p.kills||0}</td><td></td>`;
+    let cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td><td></td>`;
     corpoPlayers.appendChild(tr);
   });
 }
 function renderPlacares(){
   placaresTimes.innerHTML='';
-  times.forEach((t,i)=>{
-    placaresTimes.innerHTML+=`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`;
-  });
+  times.forEach((t,i)=>placaresTimes.innerHTML+=`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`);
   placaresPlayers.innerHTML='';
-  players.forEach((p,i)=>{
-    placaresPlayers.innerHTML+=`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`;
-  });
+  players.forEach((p,i)=>placaresPlayers.innerHTML+=`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`);
 }
 function renderHistorico(){
-  historicoRodadas.innerHTML='';
-  if(rodadas.length===0){historicoRodadas.innerHTML='<p class="muted">Nenhuma rodada registrada</p>'; return;}
-  rodadas.forEach(r=>{
+  historicoSalas.innerHTML='';
+  if(salas.length===0){historicoSalas.innerHTML='<p class="muted">Nenhuma sala registrada</p>'; return;}
+  salas.forEach(r=>{
     const div=document.createElement('div');
-    div.innerHTML=`<div class="round-title">Rodada ${r.numero}</div>`;
+    div.innerHTML=`<div class="room-title">Sala: ${r.nome}</div>`;
     let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
     r.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
     let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
     r.players.forEach(ps=>pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td></tr>`); pTable+='</tbody></table>';
-    div.innerHTML+=tTable+pTable; historicoRodadas.appendChild(div);
+    div.innerHTML+=tTable+pTable; historicoSalas.appendChild(div);
   });
 }
 function renderAll(){renderTimes();renderPlayers();atualizarTimesOptions();renderPlacares();renderHistorico();}
 
-// -------------------- Adicionar Time --------------------
-document.getElementById('formAddTime').addEventListener('submit',e=>{
+// Eventos
+document.getElementById('formAddTime').addEventListener('submit',e=>{e.preventDefault(); times.push({name:document.getElementById('nomeTime').value, points:+document.getElementById('pontosTime').value}); localStorage.setItem('campeonatoTimes',JSON.stringify(times)); renderAll();});
+document.getElementById('formAddPlayer').addEventListener('submit',e=>{e.preventDefault(); if(!timePlayer.value){alert('Selecione um time');return;} players.push({name:document.getElementById('nomePlayer').value, team:timePlayer.value, kills:+document.getElementById('killsPlayer').value}); localStorage.setItem('campeonatoPlayers',JSON.stringify(players)); renderAll();});
+document.getElementById('formSala').addEventListener('submit',e=>{
   e.preventDefault();
-  const nome=document.getElementById('nomeTime').value;
-  const pts=+document.getElementById('pontosTime').value;
-  times.push({name:nome,points:pts});
-  localStorage.setItem('campeonatoTimes',JSON.stringify(times));
-  renderAll();
-});
-
-// -------------------- Adicionar Player --------------------
-document.getElementById('formAddPlayer').addEventListener('submit',e=>{
-  e.preventDefault();
-  const nome=document.getElementById('nomePlayer').value;
-  const team=timePlayer.value;
-  const kills=+document.getElementById('killsPlayer').value;
-  if(!team){alert('Selecione um time'); return;}
-  players.push({name:nome,team:team,kills:kills});
-  localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
-  renderAll();
-});
-
-// -------------------- Adicionar Rodada --------------------
-document.getElementById('formRodada').addEventListener('submit',e=>{
-  e.preventDefault();
-  const numero=+document.getElementById('numRodada').value;
-  const timesRodada=times.map((t,i)=>({name:t.name,points:+document.getElementById('placarTime'+i).value}));
-  const playersRodada=players.map((p,i)=>({name:p.name,kills:+document.getElementById('placarPlayer'+i).value}));
-  rodadas.push({numero, times:timesRodada, players:playersRodada});
-  // Atualiza totais
-  times.forEach(t=>{t.points=rodadas.reduce((sum,r)=>sum+(r.times.find(rt=>rt.name===t.name)?.points||0),0)});
-  players.forEach(p=>{p.kills=rodadas.reduce((sum,r)=>sum+(r.players.find(rp=>rp.name===p.name)?.kills||0),0)});
-  localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));
+  const nome=document.getElementById('nomeSala').value;
+  const timesSala=times.map((t,i)=>({name:t.name, points:+document.getElementById('placarTime'+i).value}));
+  const playersSala=players.map((p,i)=>({name:p.name, kills:+document.getElementById('placarPlayer'+i).value}));
+  salas.push({nome, times:timesSala, players:playersSala});
+  times.forEach(t=>t.points=salas.reduce((sum,r)=>sum+(r.times.find(rt=>rt.name===t.name)?.points||0),0));
+  players.forEach(p=>p.kills=salas.reduce((sum,r)=>sum+(r.players.find(rp=>rp.name===p.name)?.kills||0),0));
   localStorage.setItem('campeonatoTimes',JSON.stringify(times));
   localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
+  localStorage.setItem('campeonatoSalas',JSON.stringify(salas));
   renderAll();
 });
-
-// -------------------- Exportar/Importar --------------------
-document.getElementById('exportarJSON').addEventListener('click',()=>{navigator.clipboard.writeText(JSON.stringify({times,players,rodadas},null,2)); alert('JSON copiado');});
-document.getElementById('importarBtn').addEventListener('click',()=>{
-  try{
-    const data=JSON.parse(document.getElementById('importarJSON').value);
-    times=data.times||[]; players=data.players||[]; rodadas=data.rodadas||[];
-    localStorage.setItem('campeonatoTimes',JSON.stringify(times));
-    localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
-    localStorage.setItem('campeonatoRodadas',JSON.stringify(rodadas));
-    renderAll();
-    alert('Importado com sucesso');
-  }catch(e){alert('Erro no JSON');}
-});
-
-// -------------------- Limpar Tudo --------------------
-document.getElementById('limparTudo').addEventListener('click',()=>{
-  if(confirm('Apagar todos os dados?')){
-    times=[]; players=[]; rodadas=[];
-    localStorage.clear();
-    renderAll();
-  }
-});
-
-// Render inicial
-renderAll();
-</script>
-</body>
-  </html>
+document.getElementById('exportarJSON').addEventListener('click',()=>{navigator.clipboard.writeText(JSON.stringify({times,players,salas},null,2)); alert('JSON copiado');});
+document.getElementById('importarBtn').addEventListener('
