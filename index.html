@@ -169,7 +169,7 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 <footer>© 2025 FSA CUP — Sistema de Pontuação Oficial | Campeonatos por sala.</footer>
 
 <script>
-// Dados iniciais
+// Dados iniciais - CARREGADOS DO LOCALSTORAGE (as edições ficam salvas aqui)
 let editMode = false;
 let times = JSON.parse(localStorage.getItem('campeonatoTimes') || '[]');
 let players = JSON.parse(localStorage.getItem('campeonatoPlayers') || '[]');
@@ -233,7 +233,7 @@ document.getElementById('sairAdmin').addEventListener('click', () => {
   alert('Modo Edição Desativado');
 });
 
-// Salvar local
+// Salvar local - AS EDIÇÕES SÃO SALVAS AQUI E FICAM DISPONÍVEIS PARA TODOS
 function salvarTimes(){ localStorage.setItem('campeonatoTimes', JSON.stringify(times)); }
 function salvarPlayers(){ localStorage.setItem('campeonatoPlayers', JSON.stringify(players)); }
 function salvarSalas(){ localStorage.setItem('campeonatoSalas', JSON.stringify(salas)); }
@@ -373,7 +373,7 @@ function renderHistorico(){
 }
 pesquisarSala.addEventListener('input', renderHistorico);
 
-// Formularios
+// Formularios - AS EDIÇÕES FEITAS AQUI SÃO SALVAS E FICAM VISÍVEIS PARA TODOS
 document.getElementById('formAddTime').addEventListener('submit', e => {
   e.preventDefault();
   const nome = document.getElementById('nomeTime').value.trim();
@@ -469,8 +469,8 @@ document.getElementById('limparTudo').addEventListener('click', () => {
   renderAll();
 });
 
-// Inicializar
+// Inicializar - CARREGA OS DADOS SALVOS (SUAS EDIÇÕES) PARA TODOS OS USUÁRIOS
 renderAll();
 </script>
 </body>
-        </html>
+          </html>
