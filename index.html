@@ -117,13 +117,11 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </footer>
 
 <script>
-// Dados
 let editMode=false;
 let times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
 let players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
 let salas=JSON.parse(localStorage.getItem('campeonatoSalas')||'[]');
 
-// Elementos
 const corpoTimes=document.getElementById('corpoTimes');
 const corpoPlayers=document.getElementById('corpoPlayers');
 const timePlayer=document.getElementById('timePlayer');
@@ -134,10 +132,7 @@ const painelAdmin=document.getElementById('painelAdmin');
 const editorAdmin=document.getElementById('editorAdmin');
 const loginAdmin=document.getElementById('loginAdmin');
 
-// Abrir/Fechar painel
 document.getElementById('botaoPainel').addEventListener('click',()=>{painelAdmin.classList.toggle('hidden');});
-
-// Autenticação
 document.getElementById('entrarAdmin').addEventListener('click',()=>{
   const senha=document.getElementById('senhaAdmin').value;
   if(senha==='5887'){editMode=true;loginAdmin.classList.add('hidden');editorAdmin.classList.remove('hidden');renderAll(); alert('Modo Edição Ativo');}
@@ -145,7 +140,6 @@ document.getElementById('entrarAdmin').addEventListener('click',()=>{
 });
 document.getElementById('sairAdmin').addEventListener('click',()=>{editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden'); alert('Modo Edição Desativado');});
 
-// Funções
 function atualizarTimesOptions(){
   timePlayer.innerHTML='<option value="">Selecione o time</option>';
   times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
@@ -179,19 +173,18 @@ function renderPlacares(){
 function renderHistorico(){
   historicoSalas.innerHTML='';
   if(salas.length===0){historicoSalas.innerHTML='<p class="muted">Nenhuma sala registrada</p>'; return;}
-  salas.forEach(r=>{
+  salas.forEach(s=>{
     const div=document.createElement('div');
-    div.innerHTML=`<div class="room-title">Sala: ${r.nome}</div>`;
+    div.innerHTML=`<div class="room-title">Sala: ${s.nome}</div>`;
     let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
-    r.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
+    s.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
     let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
-    r.players.forEach(ps=>pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td></tr>`); pTable+='</tbody></table>';
+    s.players.forEach(ps=>pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td></tr>`); pTable+='</tbody></table>';
     div.innerHTML+=tTable+pTable; historicoSalas.appendChild(div);
   });
 }
 function renderAll(){renderTimes();renderPlayers();atualizarTimesOptions();renderPlacares();renderHistorico();}
 
-// Eventos
 document.getElementById('formAddTime').addEventListener('submit',e=>{e.preventDefault(); times.push({name:document.getElementById('nomeTime').value, points:+document.getElementById('pontosTime').value}); localStorage.setItem('campeonatoTimes',JSON.stringify(times)); renderAll();});
 document.getElementById('formAddPlayer').addEventListener('submit',e=>{e.preventDefault(); if(!timePlayer.value){alert('Selecione um time');return;} players.push({name:document.getElementById('nomePlayer').value, team:timePlayer.value, kills:+document.getElementById('killsPlayer').value}); localStorage.setItem('campeonatoPlayers',JSON.stringify(players)); renderAll();});
 document.getElementById('formSala').addEventListener('submit',e=>{
@@ -200,12 +193,18 @@ document.getElementById('formSala').addEventListener('submit',e=>{
   const timesSala=times.map((t,i)=>({name:t.name, points:+document.getElementById('placarTime'+i).value}));
   const playersSala=players.map((p,i)=>({name:p.name, kills:+document.getElementById('placarPlayer'+i).value}));
   salas.push({nome, times:timesSala, players:playersSala});
-  times.forEach(t=>t.points=salas.reduce((sum,r)=>sum+(r.times.find(rt=>rt.name===t.name)?.points||0),0));
-  players.forEach(p=>p.kills=salas.reduce((sum,r)=>sum+(r.players.find(rp=>rp.name===p.name)?.kills||0),0));
+  times.forEach(t=>t.points=salas.reduce((sum,s)=>sum+(s.times.find(st=>st.name===t.name)?.points||0),0));
+  players.forEach(p=>p.kills=salas.reduce((sum,s)=>sum+(s.players.find(sp=>sp.name===p.name)?.kills||0),0));
   localStorage.setItem('campeonatoTimes',JSON.stringify(times));
   localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
   localStorage.setItem('campeonatoSalas',JSON.stringify(salas));
   renderAll();
 });
 document.getElementById('exportarJSON').addEventListener('click',()=>{navigator.clipboard.writeText(JSON.stringify({times,players,salas},null,2)); alert('JSON copiado');});
-document.getElementById('importarBtn').addEventListener('
+document.getElementById('importarBtn').addEventListener('click',()=>{try{const data=JSON.parse(document.getElementById('importarJSON').value); times=data.times||[]; players=data.players||[]; salas=data.salas||[]; localStorage.setItem('campeonatoTimes',JSON.stringify(times)); localStorage.setItem('campeonatoPlayers',JSON.stringify(players)); localStorage.setItem('campeonatoSalas',JSON.stringify(salas)); renderAll(); alert('Importado com sucesso');}catch(e){alert('Erro no JSON');}});
+document.getElementById('limparTudo').addEventListener('click',()=>{if(confirm('Apagar todos os dados?')){times=[];players=[];salas=[];localStorage.clear();renderAll();}});
+
+renderAll();
+</script>
+</body>
+  </html>
