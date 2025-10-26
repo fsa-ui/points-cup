@@ -126,11 +126,13 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 <footer>© 2025 FSA CUP — Sistema de Pontuação Oficial | Campeonatos por sala.</footer>
 
 <script>
+// Dados iniciais
 let editMode = false;
 let times = JSON.parse(localStorage.getItem('campeonatoTimes') || '[]');
 let players = JSON.parse(localStorage.getItem('campeonatoPlayers') || '[]');
 let salas = JSON.parse(localStorage.getItem('campeonatoSalas') || '[]');
 
+// Elementos
 const corpoTimes = document.getElementById('corpoTimes');
 const corpoPlayers = document.getElementById('corpoPlayers');
 const timePlayer = document.getElementById('timePlayer');
@@ -142,11 +144,13 @@ const editorAdmin = document.getElementById('editorAdmin');
 const loginAdmin = document.getElementById('loginAdmin');
 const pesquisarSala = document.getElementById('pesquisarSala');
 
-document.getElementById('botaoPainel').addEventListener('click', ()=>{painelAdmin.classList.toggle('hidden');});
+// Abrir/Fechar painel
+document.getElementById('botaoPainel').addEventListener('click', () => { painelAdmin.classList.toggle('hidden'); });
 
-document.getElementById('entrarAdmin').addEventListener('click', ()=>{
+// Autenticação
+document.getElementById('entrarAdmin').addEventListener('click', () => {
   const senha = document.getElementById('senhaAdmin').value;
-  if(senha==='5887'){
+  if (senha === '5887') {
     editMode = true;
     loginAdmin.classList.add('hidden');
     editorAdmin.classList.remove('hidden');
@@ -154,122 +158,253 @@ document.getElementById('entrarAdmin').addEventListener('click', ()=>{
     alert('Modo Edição Ativo');
   } else alert('Senha incorreta');
 });
-document.getElementById('sairAdmin').addEventListener('click', ()=>{
+document.getElementById('sairAdmin').addEventListener('click', () => {
   editMode = false;
   editorAdmin.classList.add('hidden');
   loginAdmin.classList.remove('hidden');
-  renderAll();
+  renderAll(); // Re-renderizar para esconder os botões
   alert('Modo Edição Desativado');
 });
 
+// Salvar local
 function salvarTimes(){ localStorage.setItem('campeonatoTimes', JSON.stringify(times)); }
 function salvarPlayers(){ localStorage.setItem('campeonatoPlayers', JSON.stringify(players)); }
 function salvarSalas(){ localStorage.setItem('campeonatoSalas', JSON.stringify(salas)); }
 
+// Atualizar options do select
 function atualizarTimesOptions(){
   timePlayer.innerHTML = '<option value="">Selecione o time</option>';
-  times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
+  times.forEach(t => timePlayer.innerHTML += `<option value="${t.name}">${t.name}</option>`);
 }
 
-function renderAll(){ renderTimes(); renderPlayers(); renderHistorico(); atualizarTimesOptions(); renderPlacares(); }
+// Renderizações
+function renderAll(){
+  renderTimes();
+  renderPlayers();
+  renderHistorico();
+  atualizarTimesOptions();
+  renderPlacares();
+}
 
 function renderTimes(){
-  corpoTimes.innerHTML='';
-  const timesSorted = [...times].sort((a,b)=> (b.points||0)-(a.points||0));
-  timesSorted.forEach((t,i)=>{
-    const cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    const idx=times.findIndex(x=>x.name===t.name);
-    const acoes=editMode?`<button onclick="editarTime(${idx})">✏️</button><button onclick="excluirTime(${idx})" class="danger">🗑️</button>`:'';
-    corpoTimes.innerHTML+=`<tr><td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td><td>${acoes}</td></tr>`;
+  corpoTimes.innerHTML = '';
+  // evitar mutação direta no sort original por referência
+  const timesSorted = [...times].sort((a,b)=> (b.points||0) - (a.points||0));
+  timesSorted.forEach((t,i) => {
+    const cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const idx = times.findIndex(x=>x.name===t.name);
+    
+    // Verificar se está no modo de edição para mostrar os botões
+    const botoesAcoes = editMode 
+      ? `<td>
+          <button onclick="editarTime(${idx})">✏️</button>
+          <button onclick="excluirTime(${idx})" class="danger">🗑️</button>
+        </td>`
+      : '<td>-</td>';
+    
+    corpoTimes.innerHTML += `<tr>
+      <td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td>
+      ${botoesAcoes}
+    </tr>`;
   });
 }
 
-window.editarTime=(i)=>{
-  if(!editMode || i<0||i>=times.length)return;
-  const novoNome=prompt('Novo nome do time:', times[i].name);
-  if(novoNome)times[i].name=novoNome;
-  const novosPontos=prompt('Novos pontos:', times[i].points);
-  if(!isNaN(novosPontos)&&novosPontos!==null&&novosPontos!=='')times[i].points=+novosPontos;
+window.editarTime = (i) => {
+  if (i < 0 || i >= times.length) return;
+  const novoNome = prompt('Novo nome do time:', times[i].name);
+  if (novoNome) times[i].name = novoNome;
+  const novosPontos = prompt('Novos pontos:', times[i].points);
+  if (!isNaN(novosPontos) && novosPontos !== null && novosPontos !== '') times[i].points = +novosPontos;
   salvarTimes(); atualizarTimesOptions(); renderAll();
 };
 
-window.excluirTime=(i)=>{
-  if(!editMode||i<0||i>=times.length)return;
-  if(confirm('Deseja realmente excluir este time?')){
-    const nome=times[i].name;
+window.excluirTime = (i) => {
+  if (i < 0 || i >= times.length) return;
+  if (confirm('Deseja realmente excluir este time?')) {
+    const nome = times[i].name;
     times.splice(i,1);
-    players=players.filter(p=>p.team!==nome);
+    // remover ou atualizar players do time removido
+    players = players.filter(p => p.team !== nome);
     salvarTimes(); salvarPlayers(); atualizarTimesOptions(); renderAll();
   }
 };
 
+// Players
 function renderPlayers(){
-  corpoPlayers.innerHTML='';
-  const playersSorted=[...players].sort((a,b)=>(b.kills||0)-(a.kills||0));
-  playersSorted.forEach((p,i)=>{
-    const cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    const idx=players.findIndex(x=>x.name===p.name && x.team===p.team);
-    const acoes=editMode?`<button onclick="editarPlayer(${idx})">✏️</button><button onclick="excluirPlayer(${idx})" class="danger">🗑️</button>`:'';
-    corpoPlayers.innerHTML+=`<tr><td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td><td>${acoes}</td></tr>`;
+  corpoPlayers.innerHTML = '';
+  const playersSorted = [...players].sort((a,b)=> (b.kills||0) - (a.kills||0));
+  playersSorted.forEach((p,i) => {
+    const cls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const idx = players.findIndex(x=>x.name===p.name && x.team===p.team);
+    
+    // Verificar se está no modo de edição para mostrar os botões
+    const botoesAcoes = editMode 
+      ? `<td>
+          <button onclick="editarPlayer(${idx})">✏️</button>
+          <button onclick="excluirPlayer(${idx})" class="danger">🗑️</button>
+        </td>`
+      : '<td>-</td>';
+    
+    corpoPlayers.innerHTML += `<tr>
+      <td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td>
+      ${botoesAcoes}
+    </tr>`;
   });
 }
 
-window.editarPlayer=(i)=>{
-  if(!editMode||i<0||i>=players.length)return;
-  const novoNome=prompt('Novo nome do player:', players[i].name);
-  if(novoNome)players[i].name=novoNome;
-  const novoTime=prompt('Novo time:', players[i].team);
-  if(novoTime)players[i].team=novoTime;
-  const novasKills=prompt('Novas kills:', players[i].kills);
-  if(!isNaN(novasKills)&&novasKills!==null&&novasKills!=='')players[i].kills=+novasKills;
+window.editarPlayer = (i) => {
+  if (i < 0 || i >= players.length) return;
+  const novoNome = prompt('Novo nome do player:', players[i].name);
+  if (novoNome) players[i].name = novoNome;
+  const novoTime = prompt('Novo time:', players[i].team);
+  if (novoTime) players[i].team = novoTime;
+  const novasKills = prompt('Novas kills:', players[i].kills);
+  if (!isNaN(novasKills) && novasKills !== null && novasKills !== '') players[i].kills = +novasKills;
   salvarPlayers(); renderAll();
 };
 
-window.excluirPlayer=(i)=>{
-  if(!editMode||i<0||i>=players.length)return;
-  if(confirm('Deseja realmente excluir este player?')){
+window.excluirPlayer = (i) => {
+  if (i < 0 || i >= players.length) return;
+  if (confirm('Deseja realmente excluir este player?')) {
     players.splice(i,1);
     salvarPlayers(); renderAll();
   }
 };
 
+// Placares e histórico
 function renderPlacares(){
-  placaresTimes.innerHTML=times.map((t,i)=>`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`).join('');
-  placaresPlayers.innerHTML=players.map((p,i)=>`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`).join('');
+  placaresTimes.innerHTML = times.map((t,i)=>`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`).join('');
+  placaresPlayers.innerHTML = players.map((p,i)=>`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`).join('');
 }
 
 function renderHistorico(){
-  historicoSalas.innerHTML='';
-  const filtro=pesquisarSala.value.toLowerCase();
-  salas.filter(s=>s.nome.toLowerCase().includes(filtro)).forEach(s=>{
-    const div=document.createElement('div');
-    div.className='history-room';
-    div.innerHTML=`<div class="room-title">Sala: ${s.nome}</div>`;
-    const maxPoints=Math.max(...s.times.map(t=>t.points));
-    const vencedores=s.times.filter(t=>t.points===maxPoints).map(t=>t.name);
-    let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
-    s.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`);
-    tTable+='</tbody></table>';
-    let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th><th>MVP</th></tr></thead><tbody>';
-    s.players.forEach(ps=>{
-      const timeVencedor=vencedores.includes(ps.team);
-      const killsNoTime=s.players.filter(pl=>pl.team===ps.team).map(pl=>pl.kills);
-      const maxKillsTime=killsNoTime.length?Math.max(...killsNoTime):0;
-      const isMVP=ps.kills===maxKillsTime && maxKillsTime>0;
-      let cls='';
-      if(isMVP && timeVencedor) cls='mvpWin';
-      else if(isMVP && !timeVencedor) cls='mvpLose';
-      pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td><td class="${cls}">${isMVP?'MVP':''}</td></tr>`;
+  historicoSalas.innerHTML = '';
+  const filtro = pesquisarSala.value.toLowerCase();
+  salas.filter(s => s.nome.toLowerCase().includes(filtro)).forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'history-room';
+    div.innerHTML = `<div class="room-title">Sala: ${s.nome}</div>`;
+    const maxPoints = Math.max(...s.times.map(t=>t.points));
+    const vencedores = s.times.filter(t=>t.points===maxPoints).map(t=>t.name);
+    let tTable = '<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
+    s.times.forEach(ts => tTable += `<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`);
+    tTable += '</tbody></table>';
+    let pTable = '<table class="history-table"><thead><tr><th>Player</th><th>Kills</th><th>MVP</th></tr></thead><tbody>';
+    s.players.forEach(ps => {
+      const timeVencedor = vencedores.includes(ps.team);
+      const killsNoTime = s.players.filter(pl => pl.team === ps.team).map(pl=>pl.kills);
+      const maxKillsTime = killsNoTime.length ? Math.max(...killsNoTime) : 0;
+      const isMVP = ps.kills === maxKillsTime && maxKillsTime>0;
+      let cls = '';
+      if (isMVP && timeVencedor) cls = 'mvpWin';
+      else if (isMVP && !timeVencedor) cls = 'mvpLose';
+      pTable += `<tr><td>${ps.name}</td><td>${ps.kills}</td><td class="${cls}">${isMVP?'MVP':''}</td></tr>`;
     });
-    pTable+='</tbody></table>';
-    div.innerHTML+=tTable+pTable;
+    pTable += '</tbody></table>';
+    div.innerHTML += tTable + pTable;
     historicoSalas.appendChild(div);
   });
 }
 pesquisarSala.addEventListener('input', renderHistorico);
 
+// Formularios
+document.getElementById('formAddTime').addEventListener('submit', e => {
+  e.preventDefault();
+  const nome = document.getElementById('nomeTime').value.trim();
+  const pontos = +document.getElementById('pontosTime').value || 0;
+  if (!nome) return;
+  // evitar duplicados por nome
+  if (times.some(t => t.name === nome)) {
+    alert('Time já existe.');
+    return;
+  }
+  times.push({name: nome, points: pontos});
+  salvarTimes(); atualizarTimesOptions(); renderAll();
+  e.target.reset();
+});
+document.getElementById('formAddPlayer').addEventListener('submit', e => {
+  e.preventDefault();
+  const nome = document.getElementById('nomePlayer').value.trim();
+  const team = timePlayer.value;
+  const kills = +document.getElementById('killsPlayer').value || 0;
+  if (!nome || !team) return;
+  if (players.some(p => p.name === nome && p.team === team)) {
+    alert('Player já cadastrado nesse time.');
+    return;
+  }
+  players.push({name: nome, team, kills});
+  salvarPlayers(); renderAll();
+  e.target.reset();
+});
+document.getElementById('formSala').addEventListener('submit', e => {
+  e.preventDefault();
+  const nomeSala = document.getElementById('nomeSala').value.trim();
+  if (!nomeSala) return;
+  const salaTimes = times.map((t,i) => ({ name: t.name, points: +document.getElementById('placarTime'+i).value || 0 }));
+  const salaPlayers = players.map((p,i) => ({ name: p.name, team: p.team, kills: +document.getElementById('placarPlayer'+i).value || 0 }));
+  // salvar sala
+  salas.push({ nome: nomeSala, times: salaTimes, players: salaPlayers, createdAt: new Date().toISOString() });
+  // atualizar ranking acumulado
+  salaTimes.forEach(st => {
+    const timeObj = times.find(t => t.name === st.name);
+    if (timeObj) timeObj.points = (timeObj.points || 0) + (st.points || 0);
+  });
+  salaPlayers.forEach(sp => {
+    const playerObj = players.find(p => p.name === sp.name && p.team === sp.team);
+    if (playerObj) playerObj.kills = (playerObj.kills || 0) + (sp.kills || 0);
+  });
+  salvarTimes(); salvarPlayers(); salvarSalas(); renderAll();
+  e.target.reset();
+});
+
+// Exportar JSON (download)
+document.getElementById('exportarJSON').addEventListener('click', () => {
+  const data = { times, players, salas, exportedAt: new Date().toISOString() };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fsa_cup_backup.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+// Importar JSON (colando no input)
+document.getElementById('importarBtn').addEventListener('click', () => {
+  const raw = document.getElementById('importarJSON').value.trim();
+  if (!raw) { alert('Cole o JSON no campo antes de importar.'); return; }
+  try {
+    const obj = JSON.parse(raw);
+    // validação mínima: se vier com arrays
+    if (!obj.times || !obj.players || !obj.salas) {
+      if (!confirm('JSON não parece ter estrutura completa (times/players/salas). Deseja substituir mesmo assim?')) return;
+    }
+    times = Array.isArray(obj.times) ? obj.times : (obj.times||[]);
+    players = Array.isArray(obj.players) ? obj.players : (obj.players||[]);
+    salas = Array.isArray(obj.salas) ? obj.salas : (obj.salas||[]);
+    salvarTimes(); salvarPlayers(); salvarSalas(); renderAll();
+    alert('Importação concluída.');
+    document.getElementById('importarJSON').value = '';
+  } catch (err) {
+    alert('JSON inválido: ' + err.message);
+  }
+});
+
+// Limpar tudo
+document.getElementById('limparTudo').addEventListener('click', () => {
+  if (!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  times = []; players = []; salas = [];
+  localStorage.removeItem('campeonatoTimes');
+  localStorage.removeItem('campeonatoPlayers');
+  localStorage.removeItem('campeonatoSalas');
+  renderAll();
+});
+
 // Inicializar
 renderAll();
 </script>
 </body>
-          </html>
+  </html>
