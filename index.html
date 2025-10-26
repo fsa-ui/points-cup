@@ -47,6 +47,39 @@ input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);bo
 .history-table th, .history-table td{text-align:center;}
 .search-room{margin-bottom:12px;padding:6px;border-radius:8px;border:1px solid var(--border);width:100%;}
 footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
+
+/* Novos estilos para os botões de toggle */
+.toggle-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  flex: 1;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.section-content {
+  transition: all 0.3s ease;
+}
 </style>
 </head>
 <body>
@@ -56,7 +89,15 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </header>
 
 <div class="container">
-  <section class="card">
+  <!-- Botões de toggle para as seções -->
+  <div class="toggle-buttons">
+    <button class="toggle-btn active" data-section="times">🏆 Ranking de Times</button>
+    <button class="toggle-btn" data-section="players">👤 Ranking de Players</button>
+    <button class="toggle-btn" data-section="historico">📊 Histórico de Salas</button>
+  </div>
+
+  <!-- Seção de Times -->
+  <section class="card section-content" id="section-times">
     <h2>Ranking de Times</h2>
     <table id="tabelaTimes">
       <thead><tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr></thead>
@@ -64,7 +105,8 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
     </table>
   </section>
 
-  <section class="card">
+  <!-- Seção de Players -->
+  <section class="card section-content hidden" id="section-players">
     <h2>Ranking de Players</h2>
     <table id="tabelaPlayers">
       <thead><tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr></thead>
@@ -72,7 +114,8 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
     </table>
   </section>
 
-  <section class="card">
+  <!-- Seção de Histórico -->
+  <section class="card section-content hidden" id="section-historico">
     <h2>Histórico de Salas</h2>
     <input type="text" id="pesquisarSala" class="search-room" placeholder="Pesquisar Sala..." />
     <div id="historicoSalas"></div>
@@ -144,6 +187,30 @@ const editorAdmin = document.getElementById('editorAdmin');
 const loginAdmin = document.getElementById('loginAdmin');
 const pesquisarSala = document.getElementById('pesquisarSala');
 
+// Sistema de toggle entre seções
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetSection = btn.dataset.section;
+    
+    // Atualizar botões ativos
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Esconder todas as seções
+    document.querySelectorAll('.section-content').forEach(section => {
+      section.classList.add('hidden');
+    });
+    
+    // Mostrar seção alvo
+    document.getElementById(`section-${targetSection}`).classList.remove('hidden');
+    
+    // Renderizar seção se necessário
+    if (targetSection === 'historico') {
+      renderHistorico();
+    }
+  });
+});
+
 // Abrir/Fechar painel
 document.getElementById('botaoPainel').addEventListener('click', () => { painelAdmin.classList.toggle('hidden'); });
 
@@ -181,7 +248,6 @@ function atualizarTimesOptions(){
 function renderAll(){
   renderTimes();
   renderPlayers();
-  renderHistorico();
   atualizarTimesOptions();
   renderPlacares();
 }
@@ -407,4 +473,4 @@ document.getElementById('limparTudo').addEventListener('click', () => {
 renderAll();
 </script>
 </body>
-  </html>
+        </html>
