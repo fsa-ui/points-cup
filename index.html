@@ -9,6 +9,7 @@
   --bg:#0a0e1a; --card:#0f172a; --accent:#eab308;
   --muted:#9aa4b2; --danger:#ef4444; --border:rgba(255,255,255,0.08);
   --gold:#ffd700; --silver:#c0c0c0; --bronze:#cd7f32;
+  --mvpWin:#ffea00; --mvpLose:#aaaaaa;
 }
 *{box-sizing:border-box;font-family:'Poppins',sans-serif;color:#fff;margin:0;padding:0;}
 body{background:radial-gradient(circle at top,#11192c,#070b14 60%);min-height:100vh;padding-bottom:50px;}
@@ -25,7 +26,8 @@ tr:nth-child(even){background:rgba(255,255,255,0.02);}
 td.gold{color:var(--gold);font-weight:700;}
 td.silver{color:var(--silver);font-weight:700;}
 td.bronze{color:var(--bronze);font-weight:700;}
-td.highscore{color:#4ade80;font-weight:700;}
+td.mvpWin{color:var(--mvpWin);font-weight:700;}
+td.mvpLose{color:var(--mvpLose);font-weight:700;}
 button{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;transition:.2s;}
 button.primary{background:var(--accent);border:0;color:#000;font-weight:600;}
 button.primary:hover{filter:brightness(1.1);}
@@ -41,6 +43,7 @@ input,select{background:rgba(255,255,255,0.05);border:1px solid var(--border);bo
 .room-title{margin-top:12px;color:var(--accent);font-weight:600;}
 .history-table{margin-top:6px;font-size:13px;width:100%;}
 .history-table th, .history-table td{text-align:center;}
+.search-room{margin-bottom:12px;padding:6px;border-radius:8px;border:1px solid var(--border);width:100%;}
 footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);}
 </style>
 </head>
@@ -54,7 +57,7 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 <section class="card">
 <h2>Ranking de Times</h2>
 <table id="tabelaTimes">
-<thead><tr><th>#</th><th>Time</th><th>Pontos</th><th>Ações</th></tr></thead>
+<thead><tr><th>#</th><th>Time</th><th>Pontos</th></tr></thead>
 <tbody id="corpoTimes"></tbody>
 </table>
 </section>
@@ -62,13 +65,14 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 <section class="card">
 <h2>Ranking de Players</h2>
 <table id="tabelaPlayers">
-<thead><tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th><th>Ações</th></tr></thead>
+<thead><tr><th>#</th><th>Player</th><th>Time</th><th>Kills</th></tr></thead>
 <tbody id="corpoPlayers"></tbody>
 </table>
 </section>
 
 <section class="card">
 <h2>Histórico de Salas</h2>
+<input type="text" id="pesquisarSala" class="search-room" placeholder="Pesquisar Sala..."/>
 <div id="historicoSalas"></div>
 </section>
 </div>
@@ -117,11 +121,13 @@ footer{padding:20px;text-align:center;color:var(--muted);border-top:1px solid va
 </footer>
 
 <script>
+// Dados
 let editMode=false;
 let times=JSON.parse(localStorage.getItem('campeonatoTimes')||'[]');
 let players=JSON.parse(localStorage.getItem('campeonatoPlayers')||'[]');
 let salas=JSON.parse(localStorage.getItem('campeonatoSalas')||'[]');
 
+// Elementos
 const corpoTimes=document.getElementById('corpoTimes');
 const corpoPlayers=document.getElementById('corpoPlayers');
 const timePlayer=document.getElementById('timePlayer');
@@ -131,8 +137,11 @@ const historicoSalas=document.getElementById('historicoSalas');
 const painelAdmin=document.getElementById('painelAdmin');
 const editorAdmin=document.getElementById('editorAdmin');
 const loginAdmin=document.getElementById('loginAdmin');
+const pesquisarSala=document.getElementById('pesquisarSala');
 
+// Abrir/Fechar painel
 document.getElementById('botaoPainel').addEventListener('click',()=>{painelAdmin.classList.toggle('hidden');});
+// Autenticação
 document.getElementById('entrarAdmin').addEventListener('click',()=>{
   const senha=document.getElementById('senhaAdmin').value;
   if(senha==='5887'){editMode=true;loginAdmin.classList.add('hidden');editorAdmin.classList.remove('hidden');renderAll(); alert('Modo Edição Ativo');}
@@ -140,71 +149,56 @@ document.getElementById('entrarAdmin').addEventListener('click',()=>{
 });
 document.getElementById('sairAdmin').addEventListener('click',()=>{editMode=false;editorAdmin.classList.add('hidden');loginAdmin.classList.remove('hidden'); alert('Modo Edição Desativado');});
 
+// Funções
 function atualizarTimesOptions(){
   timePlayer.innerHTML='<option value="">Selecione o time</option>';
   times.forEach(t=>timePlayer.innerHTML+=`<option value="${t.name}">${t.name}</option>`);
 }
+
 function renderTimes(){
   corpoTimes.innerHTML='';
   times.sort((a,b)=>b.points-a.points);
   times.forEach((t,i)=>{
     const tr=document.createElement('tr');
     let cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td><td></td>`;
+    tr.innerHTML=`<td>${i+1}</td><td>${t.name}</td><td class="${cls}">${t.points||0}</td>`;
     corpoTimes.appendChild(tr);
   });
 }
+
 function renderPlayers(){
   corpoPlayers.innerHTML='';
   players.sort((a,b)=>b.kills-a.kills);
   players.forEach((p,i)=>{
     const tr=document.createElement('tr');
     let cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td><td></td>`;
+    tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td class="${cls}">${p.kills||0}</td>`;
     corpoPlayers.appendChild(tr);
   });
 }
+
 function renderPlacares(){
   placaresTimes.innerHTML='';
   times.forEach((t,i)=>placaresTimes.innerHTML+=`<div class="match-container"><label>${t.name}</label><input type="number" id="placarTime${i}" value="0"/></div>`);
   placaresPlayers.innerHTML='';
   players.forEach((p,i)=>placaresPlayers.innerHTML+=`<div class="match-container"><label>${p.name}</label><input type="number" id="placarPlayer${i}" value="0"/></div>`);
 }
+
 function renderHistorico(){
   historicoSalas.innerHTML='';
-  if(salas.length===0){historicoSalas.innerHTML='<p class="muted">Nenhuma sala registrada</p>'; return;}
-  salas.forEach(s=>{
+  const filtro=pesquisarSala.value.toLowerCase();
+  salas.filter(s=>s.nome.toLowerCase().includes(filtro)).forEach(s=>{
     const div=document.createElement('div');
     div.innerHTML=`<div class="room-title">Sala: ${s.nome}</div>`;
+    // Time vencedor
+    const maxPoints=Math.max(...s.times.map(t=>t.points));
+    const vencedor=s.times.filter(t=>t.points===maxPoints).map(t=>t.name);
     let tTable='<table class="history-table"><thead><tr><th>Time</th><th>Pontos</th></tr></thead><tbody>';
     s.times.forEach(ts=>tTable+=`<tr><td>${ts.name}</td><td>${ts.points}</td></tr>`); tTable+='</tbody></table>';
     let pTable='<table class="history-table"><thead><tr><th>Player</th><th>Kills</th></tr></thead><tbody>';
-    s.players.forEach(ps=>pTable+=`<tr><td>${ps.name}</td><td>${ps.kills}</td></tr>`); pTable+='</tbody></table>';
-    div.innerHTML+=tTable+pTable; historicoSalas.appendChild(div);
-  });
-}
-function renderAll(){renderTimes();renderPlayers();atualizarTimesOptions();renderPlacares();renderHistorico();}
-
-document.getElementById('formAddTime').addEventListener('submit',e=>{e.preventDefault(); times.push({name:document.getElementById('nomeTime').value, points:+document.getElementById('pontosTime').value}); localStorage.setItem('campeonatoTimes',JSON.stringify(times)); renderAll();});
-document.getElementById('formAddPlayer').addEventListener('submit',e=>{e.preventDefault(); if(!timePlayer.value){alert('Selecione um time');return;} players.push({name:document.getElementById('nomePlayer').value, team:timePlayer.value, kills:+document.getElementById('killsPlayer').value}); localStorage.setItem('campeonatoPlayers',JSON.stringify(players)); renderAll();});
-document.getElementById('formSala').addEventListener('submit',e=>{
-  e.preventDefault();
-  const nome=document.getElementById('nomeSala').value;
-  const timesSala=times.map((t,i)=>({name:t.name, points:+document.getElementById('placarTime'+i).value}));
-  const playersSala=players.map((p,i)=>({name:p.name, kills:+document.getElementById('placarPlayer'+i).value}));
-  salas.push({nome, times:timesSala, players:playersSala});
-  times.forEach(t=>t.points=salas.reduce((sum,s)=>sum+(s.times.find(st=>st.name===t.name)?.points||0),0));
-  players.forEach(p=>p.kills=salas.reduce((sum,s)=>sum+(s.players.find(sp=>sp.name===p.name)?.kills||0),0));
-  localStorage.setItem('campeonatoTimes',JSON.stringify(times));
-  localStorage.setItem('campeonatoPlayers',JSON.stringify(players));
-  localStorage.setItem('campeonatoSalas',JSON.stringify(salas));
-  renderAll();
-});
-document.getElementById('exportarJSON').addEventListener('click',()=>{navigator.clipboard.writeText(JSON.stringify({times,players,salas},null,2)); alert('JSON copiado');});
-document.getElementById('importarBtn').addEventListener('click',()=>{try{const data=JSON.parse(document.getElementById('importarJSON').value); times=data.times||[]; players=data.players||[]; salas=data.salas||[]; localStorage.setItem('campeonatoTimes',JSON.stringify(times)); localStorage.setItem('campeonatoPlayers',JSON.stringify(players)); localStorage.setItem('campeonatoSalas',JSON.stringify(salas)); renderAll(); alert('Importado com sucesso');}catch(e){alert('Erro no JSON');}});
-document.getElementById('limparTudo').addEventListener('click',()=>{if(confirm('Apagar todos os dados?')){times=[];players=[];salas=[];localStorage.clear();renderAll();}});
-
-renderAll();
-</script>
-</body>
-  </html>
+    s.players.forEach(ps=>{
+      const timeVencedor=vencedor.includes(ps.team);
+      const maxKillsTime=s.players.filter(pl=>pl.team===ps.team).reduce((max,p)=>p.kills>max?p.kills:max,0);
+      const isMVP=ps.kills===maxKillsTime;
+      let cls='';
+      if(isMVP && timeV
